@@ -1,0 +1,383 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from ast import If
+import os
+import csv
+import datetime
+import pandas as pd
+import requests
+import locale
+import shutil
+from ftplib import FTP_TLS
+from datetime import date,timedelta
+
+version = "1.16"       # 24/01/05
+debug = 0     #  1 ... debug
+appdir = os.path.dirname(os.path.abspath(__file__))
+
+dailyfile = appdir + "./daily.txt"
+templatefile = appdir + "./template.htm"
+resultfile = appdir + "./walk.htm"
+conffile = appdir + "\\walk.conf"
+logfile = appdir + "\\walk.log"
+data_bak_file = appdir + "./walkdata.txt"
+
+#  統計情報  {キー  yymm  : 値   辞書   キー max min ave  maxdate mindate}
+statinfo = {}
+allinfo = {}
+
+datelist = []
+steplist = []
+yymm_list = []
+ave_list = []
+max_list = []
+min_list = []
+ftp_host = ftp_user = ftp_pass = ftp_url =  ""
+df = ""
+out = ""
+logf = ""
+pixela_url = ""
+pixela_token = ""
+end_year = 2024  #  データが存在する最終年
+
+lastdate = ""    #  最終データ日付
+datafile = ""
+allrank = ""     #  歩数ランキング
+monrank = ""     #  歩数ランキング  今月
+dailyindex = []  #  毎日のグラフ日付
+dailystep  = []  #  毎日のグラフ歩数
+lasthh = 0       #  何時までのデータか
+yearinfo = {}    #  年ごとの平均
+
+def main_proc():
+    global  datafile,logf
+    locale.setlocale(locale.LC_TIME, '')
+    logf = open(logfile,'a',encoding='utf-8')
+    logf.write("\n=== start %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
+    
+    read_config()
+    if datafile == "" :
+        datafile = data_bak_file
+    if not os.path.isfile(datafile) :
+        logf.write("data file not found \n")
+        logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
+        logf.close()
+        return
+    read_data()
+    create_dataframe()
+    calc_move_ave()
+    post_pixela()
+    parse_template()
+    ftp_upload()
+    if debug == 0 :
+        shutil.copyfile(datafile, data_bak_file)
+        os.remove(datafile)
+    logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
+    logf.close()
+
+
+def read_data():
+    global datelist,steplist,lasthh
+
+    out = open(dailyfile,'w',  encoding='utf-8')
+    line = 0 
+    curhh = 0
+
+    with open(datafile) as myfile:     # 行数をカウント  最終データの判断に使用
+        total_lines = sum(1 for line in myfile)
+    with open(datafile) as f:
+        reader = csv.reader(f)
+        for row in reader:
+            line = line + 1 
+            if line <= 2 :     #  先頭2行はヘッダなのでスキップ
+                continue 
+            cnt = 0 
+            prev_lasthh = curhh    # 前日の最終データ 時
+            curhh = 0  
+            for i in range(1,25):     # 24時間分のデータを合計する
+                cnt = cnt + int(row[i] )
+                if int(row[i] ) != 0 :
+                    curhh = i -1      #  本データの時間をセット
+            #  最終データが 12時までしかない場合は集計に含めない
+            if line == total_lines and curhh <= 12 :
+                lasthh = prev_lasthh       # 前日の最終時間
+                break
+            lasthh = curhh        # 最終時間のセット
+            dt = datetime.datetime.strptime(row[0], '%Y%m%d')
+            datelist.append(dt)
+            steplist.append(cnt)
+            dd = dt.strftime('%Y/%m/%d')
+            #print(dd,cnt)
+            out.write(f"{dd},{cnt}\n")    #  日付,歩数   の形式
+
+    out.close()
+
+def create_dataframe() :
+    global df,yymm_list,ave_list,max_list,min_list,lastdate,allinfo,allrank,monrank,yearrank
+    global dailyindex,dailystep
+    df = pd.DataFrame(list(zip(datelist,steplist)), columns = ['date','step'])
+    df.set_index('date', inplace=True) 
+
+    #  月別集計
+    #  m_ave は { 'step' : {データ} } で データは {'日付': 歩数 } の形式
+    m_ave = df.resample(rule = "M").mean().to_dict()
+    m_max = df.resample(rule = "M").max().to_dict()
+    m_min = df.resample(rule = "M").min().to_dict()
+
+    #  データ部分を取り出す
+    s  = m_ave['step']
+    yymm_list = s.keys()
+    #print(yymm_list)
+    ave_list = s.values()
+    s  = m_max['step']
+    max_list = s.values()
+    s  = m_min['step']
+    min_list = s.values()
+
+    lastdate = str(df.tail(1).index.date[0])
+    #print(f'最終データ = {lastdate} {lasthh}時')
+
+    monthinfo = {}
+    dfyymm = ""
+    data_exist = 0 
+    for yy in range(2021, end_year+1) :    # 2021年 ～ 2024年
+        dfyy = df[df.index.year == yy]
+        yearinfo[yy] = dfyy.mean()['step']
+        for mm  in range(1,13) :     #  1月 ～ 12月
+            yymm = yy*100+mm
+            cur_dfyymm = dfyymm
+            dfyymm = dfyy[dfyy.index.month == mm]
+            if len(dfyymm) == 0 :
+                if data_exist == 0 :   # まだデータがない
+                    continue
+                else :
+                    break              # データ終わり
+            
+            data_exist = 1 
+            monthinfo = {}
+            monthinfo['mean'] = dfyymm.mean()['step']
+            monthinfo['median'] = dfyymm.median()['step']
+            monthinfo['std'] = dfyymm.std()['step']
+            monthinfo['max'] = dfyymm.max()['step']
+            monthinfo['maxdate'] = dfyymm.idxmax()['step'].strftime('%m/%d %a')
+            monthinfo['min'] = dfyymm.min()['step']
+            monthinfo['mindate'] = dfyymm.idxmin()['step'].strftime('%m/%d %a')
+            statinfo[yymm] = monthinfo
+
+    # for を抜けた cur_dfyymm が今月のデータ
+    sortstep = cur_dfyymm.sort_values('step',ascending=False)
+    monrank = sortstep.head(10)   #  今月のランク
+
+    allinfo['mean'] = df.mean()['step']
+    allinfo['median'] = df.median()['step']
+    allinfo['std'] = df.std()['step']
+    allinfo['max'] = df.max()['step']
+    allinfo['min'] = df.min()['step']
+    allinfo['maxdate'] = df.idxmax()['step'].strftime('%m/%d %a')
+    allinfo['mindate'] = df.idxmin()['step'].strftime('%m/%d %a')
+
+    sortstep = df.sort_values('step',ascending=False)
+    allrank = sortstep.head(20)
+
+    df_tail31 = df.tail(31)
+    s = df_tail31['step']
+    dailyindex = s.keys()
+    dailystep = s.values.tolist()
+
+    dfyy = df[df.index.year == 2023]
+    sortstep = dfyy.sort_values('step',ascending=False)
+    yearrank = sortstep.head(10)   #  今年のランク
+    last30 = df.tail(30)
+    monrank = last30.sort_values('step',ascending=False)
+    monrank = monrank.head(10)
+
+def calc_move_ave() :
+    global df_movav
+    # priod   作成する期間
+    # mov_ave_dd = 7   何日間の移動平均か
+    priod = 90
+    mov_ave_dd = 7 
+    df_movav = df.tail(priod+mov_ave_dd)
+    df_movav['step'] = df_movav['step'].rolling(mov_ave_dd).mean()
+    df_movav = df_movav.tail(priod)
+    #print(df_movav)
+
+
+def post_pixela() :
+    if debug == 1 :
+        return
+    post_days = 7      #  最近の何日をpostするか
+    limit = 7000       #  この歩数以下なら pixela では0とみなす
+
+    #pixela_url = "https://pixe.la/v1/users/hama777/graphs/orange"
+    headers = {}
+    headers['X-USER-TOKEN'] = pixela_token
+    df_tail7 = df.tail(post_days)
+    for index,row in df_tail7.iterrows() :
+        data = {}
+        data['date'] = index.strftime('%Y%m%d')
+        step = int(row.step)
+        if step < limit :
+            data['quantity'] = '0'
+        else :
+            data['quantity'] = str(row.step)
+        response = requests.post(url=pixela_url, json=data, headers=headers,verify=False)
+
+def parse_template() :
+    global out 
+    f = open(templatefile , 'r', encoding='utf-8')
+    out = open(resultfile,'w' ,  encoding='utf-8')
+    for line in f :
+        if "%lastdate%" in line :
+            curdate(line)
+            continue
+        if "%month_graph" in line :
+            month_graph()
+            continue
+        if "%daily_graph" in line :
+            daily_graph()
+            continue
+        if "%daily_hist" in line :
+            daily_hist()
+            continue
+        if "%daily_movav" in line :
+            daily_movav()
+            continue
+        if "%month_table" in line :
+            month_table()
+            continue
+        if "%ranking_all1" in line :
+            ranking_all1()
+            continue
+        if "%ranking_all2" in line :
+            ranking_all2()
+            continue
+        if "%ranking_month" in line :
+            ranking_month()
+            continue
+        if "%ranking_year" in line :
+            ranking_year()
+            continue
+        if "%year_graph" in line :
+            year_graph()
+            continue
+        if "%today%" in line :
+            today(line)
+            continue
+        if "%version%" in line :
+            s = line.replace("%version%",version)
+            out.write(s)
+            continue
+        out.write(line)
+
+    f.close()
+    out.close()
+
+def ranking_all1():   #  1位から10位
+    i =0 
+    for index, row in allrank.iterrows():
+        i = i+1 
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+        if i == 10 : 
+            return
+
+def ranking_all2():    #  10位から20位
+    i =0 
+    for index, row in allrank.iterrows():
+        i = i+1 
+        if i <= 10 :
+            continue
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+
+def ranking_month():   #  過去30日のランキング
+    i =0 
+    for index, row in monrank.iterrows():
+        i = i+1 
+        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+
+def ranking_year():   #  今月のランキング
+    i =0 
+    for index, row in yearrank.iterrows():
+        i = i+1 
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+
+def month_graph() :
+    for yymm,ave in zip(yymm_list,ave_list) :
+        yy = yymm.year - 2000
+        mm = yymm.month
+        out.write(f"['{yy:02}/{mm:02}',{ave:5.0f}],") 
+
+def year_graph():
+    for yy in range(2021, end_year+1) :    # 2021年 ～ 2023年
+        out.write(f"['{yy}',{yearinfo[yy]:5.0f}],") 
+
+def daily_graph() :
+    for ix,step  in zip(dailyindex,dailystep) :
+        dd = ix.strftime('%d')
+        out.write(f"['{dd}',{step:5.0f}],") 
+
+def daily_movav() :
+    for index,row  in df_movav.iterrows() :
+        dd = index.strftime("%m/%d")
+        out.write(f"['{dd}',{row['step']:5.0f}],") 
+
+def daily_hist() :
+    for ix,step  in zip(dailyindex,dailystep) :
+        dd = ix.strftime('%d')
+        out.write(f"['{dd}',{step:5.0f}],") 
+
+def month_table():
+    for yymm,monthinfo in statinfo.items() :
+        out.write(f'<tr><td>{int(yymm/100)}/{yymm % 100:02} </td>')
+        out.write(f'<td align="right"> {monthinfo["mean"]:5.0f}</td>')
+        out.write(f'<td align="right"> {monthinfo["median"]:5.0f}</td>')
+        out.write(f'<td align="right"> {monthinfo["std"]:5.0f}</td>')
+        out.write(f'<td align="right"> {monthinfo["max"]:8d} ({monthinfo["maxdate"]})</td>')
+        out.write(f'<td align="right"> {monthinfo["min"]:8d} ({monthinfo["mindate"]})</td>')
+        out.write("</tr>")
+    
+    out.write(f'<tr><td>全体 </td>')
+    out.write(f'<td align="right"> {allinfo["mean"]:5.0f}</td>')
+    out.write(f'<td align="right"> {allinfo["median"]:5.0f}</td>')
+    out.write(f'<td align="right"> {allinfo["std"]:5.0f}</td>')
+    out.write(f'<td align="right"> {allinfo["max"]:8d} ({allinfo["maxdate"]}) </td>')
+    out.write(f'<td align="right"> {allinfo["min"]:8d} ({allinfo["mindate"]}) </td>')
+    out.write("</tr>")
+
+
+def read_config() : 
+    global ftp_host,ftp_user,ftp_pass,ftp_url,debug,datafile,pixela_url,pixela_token
+    if not os.path.isfile(conffile) :
+        debug = 1 
+        return
+
+    conf = open(conffile,'r', encoding='utf-8')
+    ftp_host = conf.readline().strip()
+    ftp_user = conf.readline().strip()
+    ftp_pass = conf.readline().strip()
+    ftp_url = conf.readline().strip()
+    datafile = conf.readline().strip()
+    pixela_url = conf.readline().strip()
+    pixela_token = conf.readline().strip()
+    conf.close()
+
+def ftp_upload() : 
+    if debug == 1 :
+        return 
+    with FTP_TLS(host=ftp_host, user=ftp_user, passwd=ftp_pass) as ftp:
+        ftp.storbinary('STOR {}'.format(ftp_url), open(resultfile, 'rb'))
+
+def today(s):
+    d = datetime.datetime.today().strftime("%m/%d %H:%M")
+    s = s.replace("%today%",d)
+    out.write(s)
+
+def curdate(s) :
+    d = f'{lastdate} {lasthh}時'
+    s = s.replace("%lastdate%",d)
+    out.write(s)
+
+# ----------------------------------------------------------
+main_proc()
+
