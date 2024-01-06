@@ -1,0 +1,180 @@
+<html><head><title>Walk List</title>
+    <!-- 24/01/05 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Content-Style-Type" content="text/css">
+    <link rel="stylesheet" href="walk.css">
+    </head>
+    
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+        google.setOnLoadCallback(
+            function() {
+                var data = google.visualization.arrayToDataTable([
+        [       '', '歩数'],
+    %month_graph
+                ]);
+        
+                var options = {
+                    title: '月別歩数',
+                    colors: ['green'] ,
+                    hAxis: {title: '月'},
+                    chartArea: { backgroundColor: '#f1f7f9' },
+                    backgroundColor: '#f1f8e9'
+                };
+        
+                var chart = new google.visualization.ColumnChart(document.getElementById('reception_count'));
+                chart.draw(data, options);
+            }
+        );
+    </script>
+    
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+        google.setOnLoadCallback(
+            function() {
+                var data = google.visualization.arrayToDataTable([
+        [       '', '歩数'],
+    %daily_graph
+                ]);
+        
+                var options = {
+                    title: '日別歩数',
+                    colors: ['green'] ,
+                    hAxis: {title: '日'},
+                    chartArea: { backgroundColor: '#f1f7f9' },
+                    backgroundColor: '#f1f8e9'
+                };
+        
+                var chart = new google.visualization.ColumnChart(document.getElementById('daily_graph'));
+                chart.draw(data, options);
+            }
+        );
+    </script>
+
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(
+        function() {
+            var data = google.visualization.arrayToDataTable([
+    [       '', '歩数'],
+%year_graph
+            ]);
+    
+            var options = {
+                title: '年別平均歩数',
+                colors: ['green'] ,
+                hAxis: {title: '年'},
+                chartArea: { backgroundColor: '#f1f7f9' },
+                backgroundColor: '#f1f8e9'
+            };
+    
+            var chart = new google.visualization.ColumnChart(document.getElementById('year_graph'));
+            chart.draw(data, options);
+        }
+    );
+</script>
+
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(
+        function() {
+            var data = google.visualization.arrayToDataTable([
+    [       '', '歩数'],
+%daily_hist
+            ]);
+    
+            var options = {
+                title: '歩数ヒストグラム',
+                colors: ['green'] ,
+                hAxis: {title: '日'},
+                chartArea: { backgroundColor: '#f1f7f9' },
+                backgroundColor: '#f1f8e9' ,
+                histogram: { bucketSize: 3000 }
+            };
+    
+            var chart = new google.visualization.Histogram(document.getElementById('daily_hist'));
+            chart.draw(data, options);
+        }
+    );
+</script>
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(
+        function() {
+            var data = google.visualization.arrayToDataTable([
+    [       '', '歩数'],
+%daily_movav
+            ]);
+    
+            var options = {
+                title: '日別歩数7日移動平均',
+                colors: ['green'] ,
+                hAxis: {title: '日'},
+                chartArea: { backgroundColor: '#f1f7f9' },
+                backgroundColor: '#f1f8e9'
+            };
+    
+            var chart = new google.visualization.LineChart(document.getElementById('daily_movav'));
+            chart.draw(data, options);
+        }
+    );
+</script>
+
+    <h1>歩数集計</h1>
+    <span style="font-size:12px;">Ver : %version%</span>
+    <span style="font-size:12px;">実行日時   : %today%</span>
+    <span style="font-size:12px;">最終データ : %lastdate%</span>
+    <h2>月別歩数グラフ</h2>
+    <div id="reception_count" style="width:900px; height:300px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <h2>月別歩数統計</h2>
+    <table>
+    <tr>
+    <th>年月</th><th>平均</th><th>中央</th><th>標準偏差</th><th>最大</th><th>最小</th>
+    </tr>
+    %month_table
+    </table>
+    <br>
+    <h2>ランキング</h2>
+    <div class="flex">
+        <div class='frame'>
+            <span style="margin-left: 30px;">総合 (1～10位)</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_all1
+            </table>
+        </div>
+        <div class='frame'>
+            <span style="margin-left: 30px;">総合 (11～20位)</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_all2
+            </table>
+        </div>
+        <div class='frame'>
+            <span style="margin-left: 30px;">過去365日</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_year
+            </table>
+        </div>
+        <div class='frame'>
+            <span style="margin-left: 30px;">過去30日</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_month
+            </table>
+        </div>
+    </div>
+    </body>
+    </html>
+    <br>
+    <h2>日別グラフ</h2>
+    <div id="daily_graph" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <div id="daily_hist" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <div id="daily_movav" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <h2>状況</h2>
+    <iframe src="https://pixe.la/v1/users/hama777/graphs/walk?mode=simple" height="155" width="720" frameborder="0">
+    </iframe>
+    <h2>年別グラフ</h2>
+    <div id="year_graph" style="width:400px; height:300px;  margin-top:20px ; margin-left:  50px; " ></div>
