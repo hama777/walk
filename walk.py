@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.16"       # 24/01/05
+version = "1.17"       # 24/01/14
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -185,9 +185,13 @@ def create_dataframe() :
     dailyindex = s.keys()
     dailystep = s.values.tolist()
 
-    dfyy = df[df.index.year == 2023]
-    sortstep = dfyy.sort_values('step',ascending=False)
-    yearrank = sortstep.head(10)   #  今年のランク
+    #t = datetime.datetime.today()
+    #d365_ago = t - datetime.timedelta(days=365)    # 365日前
+    #dfyy = df[df.index.year == 2023]
+    #target_df = df[df['date'] >= d365_ago]
+    last365 = df.tail(365)
+    sortstep = last365.sort_values('step',ascending=False)
+    yearrank = sortstep.head(10)   #  365日間のランク
     last30 = df.tail(30)
     monrank = last30.sort_values('step',ascending=False)
     monrank = monrank.head(10)
