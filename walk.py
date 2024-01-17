@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.17"       # 24/01/14
+version = "1.18"       # 24/01/17
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -135,7 +135,7 @@ def create_dataframe() :
     s  = m_min['step']
     min_list = s.values()
 
-    lastdate = str(df.tail(1).index.date[0])
+    lastdate = df.tail(1).index.date[0]
     #print(f'最終データ = {lastdate} {lasthh}時')
 
     monthinfo = {}
@@ -298,9 +298,13 @@ def ranking_month():   #  過去30日のランキング
     i =0 
     for index, row in monrank.iterrows():
         i = i+1 
-        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+        date_str = index.strftime("%y/%m/%d (%a)")
+        index_date_part = index.date()
+        if index_date_part == lastdate :      # 最終データなら赤字にする
+            date_str = f'<span class=red>{date_str}</span>'
+        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{date_str}</td></tr>')
 
-def ranking_year():   #  今月のランキング
+def ranking_year():   #  今年のランキング
     i =0 
     for index, row in yearrank.iterrows():
         i = i+1 
