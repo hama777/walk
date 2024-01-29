@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 24/01/05 -->
+    <!-- 24/01/29 -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -152,10 +152,17 @@
             </table>
         </div>
         <div class='frame'>
-            <span style="margin-left: 30px;">過去365日</span>
+            <span style="margin-left: 30px;">過去365日 (1～10位)</span>
             <table class="rank">
             <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-            %ranking_year
+            %ranking_year%
+            </table>
+        </div>
+        <div class='frame'>
+            <span style="margin-left: 30px;">過去365日 (11～20位)</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_year2%
             </table>
         </div>
         <div class='frame'>
