@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.18"       # 24/01/17
+version = "1.19"       # 24/01/29
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -191,7 +191,7 @@ def create_dataframe() :
     #target_df = df[df['date'] >= d365_ago]
     last365 = df.tail(365)
     sortstep = last365.sort_values('step',ascending=False)
-    yearrank = sortstep.head(10)   #  365日間のランク
+    yearrank = sortstep.head(20)   #  365日間のランク
     last30 = df.tail(30)
     monrank = last30.sort_values('step',ascending=False)
     monrank = monrank.head(10)
@@ -260,8 +260,11 @@ def parse_template() :
         if "%ranking_month" in line :
             ranking_month()
             continue
-        if "%ranking_year" in line :
+        if "%ranking_year%" in line :
             ranking_year()
+            continue
+        if "%ranking_year2%" in line :
+            ranking_year2()
             continue
         if "%year_graph" in line :
             year_graph()
@@ -308,6 +311,16 @@ def ranking_year():   #  今年のランキング
     i =0 
     for index, row in yearrank.iterrows():
         i = i+1 
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+        if i == 10 : 
+            return
+
+def ranking_year2():   #  今年のランキング   11-20位
+    i =0 
+    for index, row in yearrank.iterrows():
+        i = i+1 
+        if i <= 10 :
+            continue
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
 
 def month_graph() :
