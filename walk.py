@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.19"       # 24/01/29
-debug = 0     #  1 ... debug
+version = "1.20"       # 24/01/30
+debug = 1     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
 dailyfile = appdir + "./daily.txt"
@@ -185,10 +185,6 @@ def create_dataframe() :
     dailyindex = s.keys()
     dailystep = s.values.tolist()
 
-    #t = datetime.datetime.today()
-    #d365_ago = t - datetime.timedelta(days=365)    # 365日前
-    #dfyy = df[df.index.year == 2023]
-    #target_df = df[df['date'] >= d365_ago]
     last365 = df.tail(365)
     sortstep = last365.sort_values('step',ascending=False)
     yearrank = sortstep.head(20)   #  365日間のランク
@@ -205,8 +201,6 @@ def calc_move_ave() :
     df_movav = df.tail(priod+mov_ave_dd)
     df_movav['step'] = df_movav['step'].rolling(mov_ave_dd).mean()
     df_movav = df_movav.tail(priod)
-    #print(df_movav)
-
 
 def post_pixela() :
     if debug == 1 :
@@ -214,7 +208,6 @@ def post_pixela() :
     post_days = 7      #  最近の何日をpostするか
     limit = 7000       #  この歩数以下なら pixela では0とみなす
 
-    #pixela_url = "https://pixe.la/v1/users/hama777/graphs/orange"
     headers = {}
     headers['X-USER-TOKEN'] = pixela_token
     df_tail7 = df.tail(post_days)
@@ -252,19 +245,24 @@ def parse_template() :
             month_table()
             continue
         if "%ranking_all1" in line :
-            ranking_all1()
+            rank_common(allrank,0)
+            #ranking_all1()
             continue
         if "%ranking_all2" in line :
-            ranking_all2()
+            rank_common(allrank,1)
+            #ranking_all2()
             continue
         if "%ranking_month" in line :
-            ranking_month()
+            rank_common(monrank,0)
+            #ranking_month()
             continue
         if "%ranking_year%" in line :
-            ranking_year()
+            rank_common(yearrank,0)
+            #ranking_year()
             continue
         if "%ranking_year2%" in line :
-            ranking_year2()
+            rank_common(yearrank,1)
+            #ranking_year2()
             continue
         if "%year_graph" in line :
             year_graph()
@@ -282,46 +280,69 @@ def parse_template() :
     out.close()
 
 def ranking_all1():   #  1位から10位
-    i =0 
-    for index, row in allrank.iterrows():
-        i = i+1 
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
-        if i == 10 : 
-            return
+    rank_common(allrank,0)
+    # i =0 
+    # for index, row in allrank.iterrows():
+    #     i = i+1 
+    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+    #     if i == 10 : 
+    #         return
 
-def ranking_all2():    #  10位から20位
-    i =0 
-    for index, row in allrank.iterrows():
-        i = i+1 
-        if i <= 10 :
-            continue
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+def ranking_all2():    #  11位から20位
+    rank_common(allrank,1)
+    # i =0 
+    # for index, row in allrank.iterrows():
+    #     i = i+1 
+    #     if i <= 10 :
+    #         continue
+    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
 
 def ranking_month():   #  過去30日のランキング
+    rank_common(monrank,0)
+    # i =0 
+    # for index, row in monrank.iterrows():
+    #     i = i+1 
+    #     date_str = index.strftime("%y/%m/%d (%a)")
+    #     index_date_part = index.date()
+    #     if index_date_part == lastdate :      # 最終データなら赤字にする
+    #         date_str = f'<span class=red>{date_str}</span>'
+    #     out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{date_str}</td></tr>')
+
+def ranking_year():   #  今年のランキング
+    rank_common(yearrank,0)
+    # i =0 
+    # for index, row in yearrank.iterrows():
+    #     i = i+1 
+    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+    #     if i == 10 : 
+    #         return
+
+def ranking_year2():   #  今年のランキング   11-20位
+    rank_common(yearrank,1)
+    # i =0 
+    # for index, row in yearrank.iterrows():
+    #     i = i+1 
+    #     if i <= 10 :
+    #         continue
+    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+
+def rank_common(rankdata,flg) :
+    #  flg ..  0  1-10位を表示   1  11-20位を表示
     i =0 
-    for index, row in monrank.iterrows():
+    for index, row in rankdata.iterrows():
         i = i+1 
+        if flg == 0 :
+            if i >= 11 :
+                break 
+        if flg == 1 :
+            if i <= 10 :
+                continue 
+
         date_str = index.strftime("%y/%m/%d (%a)")
         index_date_part = index.date()
         if index_date_part == lastdate :      # 最終データなら赤字にする
             date_str = f'<span class=red>{date_str}</span>'
-        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{date_str}</td></tr>')
-
-def ranking_year():   #  今年のランキング
-    i =0 
-    for index, row in yearrank.iterrows():
-        i = i+1 
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
-        if i == 10 : 
-            return
-
-def ranking_year2():   #  今年のランキング   11-20位
-    i =0 
-    for index, row in yearrank.iterrows():
-        i = i+1 
-        if i <= 10 :
-            continue
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{date_str}</td></tr>')
 
 def month_graph() :
     for yymm,ave in zip(yymm_list,ave_list) :
