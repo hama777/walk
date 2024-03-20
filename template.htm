@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 24/01/29 -->
+    <!-- 24/03/20 -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -16,11 +16,11 @@
                 ]);
         
                 var options = {
-                    title: '月別歩数',
                     colors: ['green'] ,
                     hAxis: {title: '月'},
-                    chartArea: { backgroundColor: '#f1f7f9' },
-                    backgroundColor: '#f1f8e9'
+                    chartArea: { backgroundColor: '#f1f7f9' , left:80,right:50},
+                    backgroundColor: '#f1f8e9' ,
+                    legend: {  position: 'none'  }
                 };
         
                 var chart = new google.visualization.ColumnChart(document.getElementById('reception_count'));
@@ -42,8 +42,9 @@
                     title: '日別歩数',
                     colors: ['green'] ,
                     hAxis: {title: '日'},
-                    chartArea: { backgroundColor: '#f1f7f9' },
-                    backgroundColor: '#f1f8e9'
+                    chartArea: { backgroundColor: '#f1f7f9' , left:80,right:50},
+                    backgroundColor: '#f1f8e9',
+                    legend: {  position: 'none'  }
                 };
         
                 var chart = new google.visualization.ColumnChart(document.getElementById('daily_graph'));
@@ -90,7 +91,8 @@
                 hAxis: {title: '日'},
                 chartArea: { backgroundColor: '#f1f7f9' },
                 backgroundColor: '#f1f8e9' ,
-                histogram: { bucketSize: 3000 }
+                histogram: { bucketSize: 3000 },
+                legend: {  position: 'none'  }
             };
     
             var chart = new google.visualization.Histogram(document.getElementById('daily_hist'));
@@ -111,8 +113,11 @@
                 title: '日別歩数7日移動平均',
                 colors: ['green'] ,
                 hAxis: {title: '日'},
-                chartArea: { backgroundColor: '#f1f7f9' },
-                backgroundColor: '#f1f8e9'
+                chartArea: { backgroundColor: '#f1f7f9' , left:80,right:50},
+                backgroundColor: '#f1f8e9',
+                curveType: 'function', 
+                legend: {  position: 'none'  }
+
             };
     
             var chart = new google.visualization.LineChart(document.getElementById('daily_movav'));
@@ -126,7 +131,7 @@
     <span style="font-size:12px;">実行日時   : %today%</span>
     <span style="font-size:12px;">最終データ : %lastdate%</span>
     <h2>月別歩数グラフ</h2>
-    <div id="reception_count" style="width:900px; height:300px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <div id="reception_count" style="width:900px; height:350px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>月別歩数統計</h2>
     <table>
     <tr>
