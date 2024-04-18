@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.20"       # 24/01/30
+version = "1.21"       # 24/04/18
 debug = 1     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -69,6 +69,7 @@ def main_proc():
     calc_move_ave()
     post_pixela()
     parse_template()
+    quar_graph()
     ftp_upload()
     if debug == 0 :
         shutil.copyfile(datafile, data_bak_file)
@@ -108,14 +109,13 @@ def read_data():
             datelist.append(dt)
             steplist.append(cnt)
             dd = dt.strftime('%Y/%m/%d')
-            #print(dd,cnt)
             out.write(f"{dd},{cnt}\n")    #  日付,歩数   の形式
 
     out.close()
 
 def create_dataframe() :
     global df,yymm_list,ave_list,max_list,min_list,lastdate,allinfo,allrank,monrank,yearrank
-    global dailyindex,dailystep
+    global dailyindex,dailystep,quar_name,quar_ave
     df = pd.DataFrame(list(zip(datelist,steplist)), columns = ['date','step'])
     df.set_index('date', inplace=True) 
 
@@ -125,10 +125,16 @@ def create_dataframe() :
     m_max = df.resample(rule = "M").max().to_dict()
     m_min = df.resample(rule = "M").min().to_dict()
 
+    q = df.resample(rule = "Q").mean().to_dict()
+    s = q['step']
+    quar_name = s.keys()
+    quar_ave = s.values()
+    #print(quar_name,quar_ave)
+
+
     #  データ部分を取り出す
     s  = m_ave['step']
     yymm_list = s.keys()
-    #print(yymm_list)
     ave_list = s.values()
     s  = m_max['step']
     max_list = s.values()
@@ -136,7 +142,6 @@ def create_dataframe() :
     min_list = s.values()
 
     lastdate = df.tail(1).index.date[0]
-    #print(f'最終データ = {lastdate} {lasthh}時')
 
     monthinfo = {}
     dfyymm = ""
@@ -246,23 +251,18 @@ def parse_template() :
             continue
         if "%ranking_all1" in line :
             rank_common(allrank,0)
-            #ranking_all1()
             continue
         if "%ranking_all2" in line :
             rank_common(allrank,1)
-            #ranking_all2()
             continue
         if "%ranking_month" in line :
             rank_common(monrank,0)
-            #ranking_month()
             continue
         if "%ranking_year%" in line :
             rank_common(yearrank,0)
-            #ranking_year()
             continue
         if "%ranking_year2%" in line :
             rank_common(yearrank,1)
-            #ranking_year2()
             continue
         if "%year_graph" in line :
             year_graph()
@@ -281,50 +281,18 @@ def parse_template() :
 
 def ranking_all1():   #  1位から10位
     rank_common(allrank,0)
-    # i =0 
-    # for index, row in allrank.iterrows():
-    #     i = i+1 
-    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
-    #     if i == 10 : 
-    #         return
 
 def ranking_all2():    #  11位から20位
     rank_common(allrank,1)
-    # i =0 
-    # for index, row in allrank.iterrows():
-    #     i = i+1 
-    #     if i <= 10 :
-    #         continue
-    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
 
 def ranking_month():   #  過去30日のランキング
     rank_common(monrank,0)
-    # i =0 
-    # for index, row in monrank.iterrows():
-    #     i = i+1 
-    #     date_str = index.strftime("%y/%m/%d (%a)")
-    #     index_date_part = index.date()
-    #     if index_date_part == lastdate :      # 最終データなら赤字にする
-    #         date_str = f'<span class=red>{date_str}</span>'
-    #     out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{date_str}</td></tr>')
 
 def ranking_year():   #  今年のランキング
     rank_common(yearrank,0)
-    # i =0 
-    # for index, row in yearrank.iterrows():
-    #     i = i+1 
-    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
-    #     if i == 10 : 
-    #         return
 
 def ranking_year2():   #  今年のランキング   11-20位
     rank_common(yearrank,1)
-    # i =0 
-    # for index, row in yearrank.iterrows():
-    #     i = i+1 
-    #     if i <= 10 :
-    #         continue
-    #     out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{index.strftime("%y/%m/%d (%a)")}</td></tr>')
 
 def rank_common(rankdata,flg) :
     #  flg ..  0  1-10位を表示   1  11-20位を表示
@@ -353,6 +321,10 @@ def month_graph() :
 def year_graph():
     for yy in range(2021, end_year+1) :    # 2021年 ～ 2023年
         out.write(f"['{yy}',{yearinfo[yy]:5.0f}],") 
+
+def quar_graph():
+    for name,ave in zip(quar_name,quar_ave) :
+        print(name.strftime("%y/%m"),ave)
 
 def daily_graph() :
     for ix,step  in zip(dailyindex,dailystep) :
