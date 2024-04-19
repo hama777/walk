@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 24/03/20 -->
+    <!-- 24/04/19 -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -71,6 +71,28 @@
             };
     
             var chart = new google.visualization.ColumnChart(document.getElementById('year_graph'));
+            chart.draw(data, options);
+        }
+    );
+</script>
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(
+        function() {
+            var data = google.visualization.arrayToDataTable([
+    [       '', '歩数'],
+%quar_graph
+            ]);
+    
+            var options = {
+                title: '年別平均歩数',
+                colors: ['green'] ,
+                hAxis: {title: '年'},
+                chartArea: { backgroundColor: '#f1f7f9' },
+                backgroundColor: '#f1f8e9'
+            };
+    
+            var chart = new google.visualization.ColumnChart(document.getElementById('quar_graph'));
             chart.draw(data, options);
         }
     );
@@ -178,8 +200,6 @@
             </table>
         </div>
     </div>
-    </body>
-    </html>
     <br>
     <h2>日別グラフ</h2>
     <div id="daily_graph" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
@@ -190,3 +210,7 @@
     </iframe>
     <h2>年別グラフ</h2>
     <div id="year_graph" style="width:400px; height:300px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <h2>四半期グラフ</h2>
+    <div id="quar_graph" style="width:600px; height:300px;  margin-top:20px ; margin-left:  50px; " ></div>
+</body>
+</html>
