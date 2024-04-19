@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.21"       # 24/04/18
-debug = 1     #  1 ... debug
+version = "1.22"       # 24/04/19
+debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
 dailyfile = appdir + "./daily.txt"
@@ -69,7 +69,6 @@ def main_proc():
     calc_move_ave()
     post_pixela()
     parse_template()
-    quar_graph()
     ftp_upload()
     if debug == 0 :
         shutil.copyfile(datafile, data_bak_file)
@@ -121,11 +120,11 @@ def create_dataframe() :
 
     #  月別集計
     #  m_ave は { 'step' : {データ} } で データは {'日付': 歩数 } の形式
-    m_ave = df.resample(rule = "M").mean().to_dict()
-    m_max = df.resample(rule = "M").max().to_dict()
-    m_min = df.resample(rule = "M").min().to_dict()
+    m_ave = df.resample(rule = "ME").mean().to_dict()
+    m_max = df.resample(rule = "ME").max().to_dict()
+    m_min = df.resample(rule = "ME").min().to_dict()
 
-    q = df.resample(rule = "Q").mean().to_dict()
+    q = df.resample(rule = "QE").mean().to_dict()
     s = q['step']
     quar_name = s.keys()
     quar_ave = s.values()
@@ -226,58 +225,6 @@ def post_pixela() :
             data['quantity'] = str(row.step)
         response = requests.post(url=pixela_url, json=data, headers=headers,verify=False)
 
-def parse_template() :
-    global out 
-    f = open(templatefile , 'r', encoding='utf-8')
-    out = open(resultfile,'w' ,  encoding='utf-8')
-    for line in f :
-        if "%lastdate%" in line :
-            curdate(line)
-            continue
-        if "%month_graph" in line :
-            month_graph()
-            continue
-        if "%daily_graph" in line :
-            daily_graph()
-            continue
-        if "%daily_hist" in line :
-            daily_hist()
-            continue
-        if "%daily_movav" in line :
-            daily_movav()
-            continue
-        if "%month_table" in line :
-            month_table()
-            continue
-        if "%ranking_all1" in line :
-            rank_common(allrank,0)
-            continue
-        if "%ranking_all2" in line :
-            rank_common(allrank,1)
-            continue
-        if "%ranking_month" in line :
-            rank_common(monrank,0)
-            continue
-        if "%ranking_year%" in line :
-            rank_common(yearrank,0)
-            continue
-        if "%ranking_year2%" in line :
-            rank_common(yearrank,1)
-            continue
-        if "%year_graph" in line :
-            year_graph()
-            continue
-        if "%today%" in line :
-            today(line)
-            continue
-        if "%version%" in line :
-            s = line.replace("%version%",version)
-            out.write(s)
-            continue
-        out.write(line)
-
-    f.close()
-    out.close()
 
 def ranking_all1():   #  1位から10位
     rank_common(allrank,0)
@@ -324,7 +271,8 @@ def year_graph():
 
 def quar_graph():
     for name,ave in zip(quar_name,quar_ave) :
-        print(name.strftime("%y/%m"),ave)
+        out.write(f"['{name.strftime("%y/%m")}',{ave:5.0f}],") 
+        #print(name.strftime("%y/%m"),ave)
 
 def daily_graph() :
     for ix,step  in zip(dailyindex,dailystep) :
@@ -391,6 +339,63 @@ def curdate(s) :
     d = f'{lastdate} {lasthh}時'
     s = s.replace("%lastdate%",d)
     out.write(s)
+
+def parse_template() :
+    global out 
+    f = open(templatefile , 'r', encoding='utf-8')
+    out = open(resultfile,'w' ,  encoding='utf-8')
+    for line in f :
+        if "%lastdate%" in line :
+            curdate(line)
+            continue
+        if "%month_graph" in line :
+            month_graph()
+            continue
+        if "%daily_graph" in line :
+            daily_graph()
+            continue
+        if "%daily_hist" in line :
+            daily_hist()
+            continue
+        if "%daily_movav" in line :
+            daily_movav()
+            continue
+        if "%month_table" in line :
+            month_table()
+            continue
+        if "%ranking_all1" in line :
+            rank_common(allrank,0)
+            continue
+        if "%ranking_all2" in line :
+            rank_common(allrank,1)
+            continue
+        if "%ranking_month" in line :
+            rank_common(monrank,0)
+            continue
+        if "%ranking_year%" in line :
+            rank_common(yearrank,0)
+            continue
+        if "%ranking_year2%" in line :
+            rank_common(yearrank,1)
+            continue
+        if "%year_graph" in line :
+            year_graph()
+            continue
+        if "%quar_graph" in line :
+            quar_graph()
+            continue
+        if "%today%" in line :
+            today(line)
+            continue
+        if "%version%" in line :
+            s = line.replace("%version%",version)
+            out.write(s)
+            continue
+        out.write(line)
+
+    f.close()
+    out.close()
+
 
 # ----------------------------------------------------------
 main_proc()
