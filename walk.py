@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.22"       # 24/04/19
+version = "1.23"       # 24/04/21
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -120,11 +120,11 @@ def create_dataframe() :
 
     #  月別集計
     #  m_ave は { 'step' : {データ} } で データは {'日付': 歩数 } の形式
-    m_ave = df.resample(rule = "ME").mean().to_dict()
-    m_max = df.resample(rule = "ME").max().to_dict()
-    m_min = df.resample(rule = "ME").min().to_dict()
+    m_ave = df.resample(rule = "M").mean().to_dict()
+    m_max = df.resample(rule = "M").max().to_dict()
+    m_min = df.resample(rule = "M").min().to_dict()
 
-    q = df.resample(rule = "QE").mean().to_dict()
+    q = df.resample(rule = "Q").mean().to_dict()
     s = q['step']
     quar_name = s.keys()
     quar_ave = s.values()
@@ -271,7 +271,8 @@ def year_graph():
 
 def quar_graph():
     for name,ave in zip(quar_name,quar_ave) :
-        out.write(f"['{name.strftime("%y/%m")}',{ave:5.0f}],") 
+        haxis_name = name.strftime("%y/%m")
+        out.write(f"['{haxis_name}',{ave:5.0f}],") 
         #print(name.strftime("%y/%m"),ave)
 
 def daily_graph() :
