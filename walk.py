@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.23"       # 24/04/21
+version = "1.24"       # 24/05/06
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -68,6 +68,7 @@ def main_proc():
     create_dataframe()
     calc_move_ave()
     post_pixela()
+    #rank_week()
     parse_template()
     ftp_upload()
     if debug == 0 :
@@ -205,6 +206,16 @@ def calc_move_ave() :
     df_movav = df.tail(priod+mov_ave_dd)
     df_movav['step'] = df_movav['step'].rolling(mov_ave_dd).mean()
     df_movav = df_movav.tail(priod)
+
+#   週間ランキング
+def rank_week() :
+    global df_rank_week
+    # mov_ave_dd = 7   何日間の移動平均か
+    mov_ave_dd = 7 
+    df_rank_week = df
+    df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
+    df_rank_week = df_rank_week.sort_values('step',ascending=False)
+    print(df_rank_week.head(30))
 
 def post_pixela() :
     if debug == 1 :
