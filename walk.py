@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.24"       # 24/05/06
+version = "1.25"       # 24/05/08
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -215,7 +215,12 @@ def rank_week() :
     df_rank_week = df
     df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
     df_rank_week = df_rank_week.sort_values('step',ascending=False)
-    print(df_rank_week.head(30))
+    i = 0
+    #print(df_rank_week.head(30)) 
+    for index , row in df_rank_week.head(20).iterrows() :
+        i += 1
+        date_str = index.strftime('%Y/%m/%d')
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
 def post_pixela() :
     if debug == 1 :
@@ -321,7 +326,7 @@ def month_table():
 
 
 def read_config() : 
-    global ftp_host,ftp_user,ftp_pass,ftp_url,debug,datafile,pixela_url,pixela_token
+    global ftp_host,ftp_user,ftp_pass,ftp_url,debug,datafile,pixela_url,pixela_token,debug
     if not os.path.isfile(conffile) :
         debug = 1 
         return
@@ -334,6 +339,7 @@ def read_config() :
     datafile = conf.readline().strip()
     pixela_url = conf.readline().strip()
     pixela_token = conf.readline().strip()
+    debug  = int(conf.readline().strip())
     conf.close()
 
 def ftp_upload() : 
@@ -395,6 +401,9 @@ def parse_template() :
             continue
         if "%quar_graph" in line :
             quar_graph()
+            continue
+        if "%rank_week%" in line :
+            rank_week()
             continue
         if "%today%" in line :
             today(line)
