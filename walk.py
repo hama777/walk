@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.25"       # 24/05/08
+version = "1.26"       # 24/05/10
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -208,7 +208,7 @@ def calc_move_ave() :
     df_movav = df_movav.tail(priod)
 
 #   週間ランキング
-def rank_week() :
+def rank_week(flg) :
     global df_rank_week
     # mov_ave_dd = 7   何日間の移動平均か
     mov_ave_dd = 7 
@@ -216,9 +216,15 @@ def rank_week() :
     df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
     df_rank_week = df_rank_week.sort_values('step',ascending=False)
     i = 0
-    #print(df_rank_week.head(30)) 
     for index , row in df_rank_week.head(20).iterrows() :
         i += 1
+        if flg == 0 :
+            if i >= 11 :
+                break 
+        if flg == 1 :
+            if i <= 10 :
+                continue 
+
         date_str = index.strftime('%Y/%m/%d')
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
@@ -402,8 +408,11 @@ def parse_template() :
         if "%quar_graph" in line :
             quar_graph()
             continue
-        if "%rank_week%" in line :
-            rank_week()
+        if "%rank_week1%" in line :
+            rank_week(0)
+            continue
+        if "%rank_week2%" in line :
+            rank_week(1)
             continue
         if "%today%" in line :
             today(line)
