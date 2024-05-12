@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.26"       # 24/05/10
+version = "1.27"       # 24/05/12
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -212,10 +212,11 @@ def rank_week(flg) :
     global df_rank_week
     # mov_ave_dd = 7   何日間の移動平均か
     mov_ave_dd = 7 
-    df_rank_week = df
+    df_rank_week = df.copy()
     df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
     df_rank_week = df_rank_week.sort_values('step',ascending=False)
     i = 0
+    print(df_rank_week.head(20))
     for index , row in df_rank_week.head(20).iterrows() :
         i += 1
         if flg == 0 :
