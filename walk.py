@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.27"       # 24/05/12
+version = "1.28"       # 24/06/17
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,7 +41,7 @@ pixela_url = ""
 pixela_token = ""
 end_year = 2024  #  データが存在する最終年
 
-lastdate = ""    #  最終データ日付
+lastdate = ""    #  最終データ日付   datetime.date型
 datafile = ""
 allrank = ""     #  歩数ランキング
 monrank = ""     #  歩数ランキング  今月
@@ -216,7 +216,9 @@ def rank_week(flg) :
     df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
     df_rank_week = df_rank_week.sort_values('step',ascending=False)
     i = 0
-    print(df_rank_week.head(20))
+    print(lastdate)
+    print(type(lastdate))
+    #print(df_rank_week.head(20))
     for index , row in df_rank_week.head(20).iterrows() :
         i += 1
         if flg == 0 :
@@ -227,6 +229,9 @@ def rank_week(flg) :
                 continue 
 
         date_str = index.strftime('%Y/%m/%d')
+        print(index.date())
+        if index.date() == lastdate :      # 最終データなら赤字にする
+            date_str = f'<span class=red>{date_str}</span>'
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
 def post_pixela() :
