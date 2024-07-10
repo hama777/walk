@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 24/05/10 -->
+    <!-- 24/07/10 -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -203,10 +203,24 @@
         </div>
     </div>
     <br>
+    <h2>月別ランキング</h2>
+    <div class="flex">
+        <div class='frame'>
+            <span style="margin-left: 30px;">平均値</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>年月</th></tr>
+            %month_ave_top%
+            </table>
+        </div>
+    </div>
+
+
+    <br>
     <h2>日別グラフ</h2>
     <div id="daily_graph" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
     <div id="daily_hist" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
     <div id="daily_movav" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
+
     <h2>状況</h2>
     <iframe src="https://pixe.la/v1/users/hama777/graphs/walk?mode=simple" height="155" width="720" frameborder="0">
     </iframe>
