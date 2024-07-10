@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.28"       # 24/06/17
+version = "1.29"       # 24/07/10
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -68,7 +68,6 @@ def main_proc():
     create_dataframe()
     calc_move_ave()
     post_pixela()
-    #rank_week()
     parse_template()
     ftp_upload()
     if debug == 0 :
@@ -129,8 +128,6 @@ def create_dataframe() :
     s = q['step']
     quar_name = s.keys()
     quar_ave = s.values()
-    #print(quar_name,quar_ave)
-
 
     #  データ部分を取り出す
     s  = m_ave['step']
@@ -197,10 +194,20 @@ def create_dataframe() :
     monrank = last30.sort_values('step',ascending=False)
     monrank = monrank.head(10)
 
+#   月ごとの平均値のトップを表示
+def month_ave_top() :
+    df_mon = df.resample(rule = "M").mean()
+    df_mon = df_mon.sort_values('step',ascending=False)
+    i = 0 
+    for index,row in df_mon.head(5).iterrows() :
+        i += 1
+        date_str = index.strftime('%Y/%m')
+        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
+
 def calc_move_ave() :
     global df_movav
     # priod   作成する期間
-    # mov_ave_dd = 7   何日間の移動平均か
+    # mov_ave_dd    何日間の移動平均か
     priod = 90
     mov_ave_dd = 7 
     df_movav = df.tail(priod+mov_ave_dd)
@@ -210,15 +217,11 @@ def calc_move_ave() :
 #   週間ランキング
 def rank_week(flg) :
     global df_rank_week
-    # mov_ave_dd = 7   何日間の移動平均か
     mov_ave_dd = 7 
     df_rank_week = df.copy()
     df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
     df_rank_week = df_rank_week.sort_values('step',ascending=False)
     i = 0
-    print(lastdate)
-    print(type(lastdate))
-    #print(df_rank_week.head(20))
     for index , row in df_rank_week.head(20).iterrows() :
         i += 1
         if flg == 0 :
@@ -229,7 +232,6 @@ def rank_week(flg) :
                 continue 
 
         date_str = index.strftime('%Y/%m/%d')
-        print(index.date())
         if index.date() == lastdate :      # 最終データなら赤字にする
             date_str = f'<span class=red>{date_str}</span>'
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
@@ -301,7 +303,6 @@ def quar_graph():
     for name,ave in zip(quar_name,quar_ave) :
         haxis_name = name.strftime("%y/%m")
         out.write(f"['{haxis_name}',{ave:5.0f}],") 
-        #print(name.strftime("%y/%m"),ave)
 
 def daily_graph() :
     for ix,step  in zip(dailyindex,dailystep) :
@@ -419,6 +420,9 @@ def parse_template() :
             continue
         if "%rank_week2%" in line :
             rank_week(1)
+            continue
+        if "%month_ave_top%" in line :
+            month_ave_top()
             continue
         if "%today%" in line :
             today(line)
