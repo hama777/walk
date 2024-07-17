@@ -12,7 +12,7 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.31"       # 24/07/13
+version = "1.32"       # 24/07/16
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -198,25 +198,35 @@ def create_dataframe() :
 def month_ave_top() :
     df_mon = df.resample(rule = "M").mean()
     df_mon = df_mon.sort_values('step',ascending=False)
+    month_top_com(df_mon)
+
+#   月ごとの中央値のトップを表示
+def month_median_top() :
+    df_mon = df.resample(rule = "M").median()
+    df_mon = df_mon.sort_values('step',ascending=False)
+    month_top_com(df_mon)
+
+#   月ごとの最大値のトップを表示
+def month_max_top() :
+    df_mon = df.resample(rule = "M").max()
+    df_mon = df_mon.sort_values('step',ascending=False)
+    month_top_com(df_mon)
+
+#   月ごとの最小値のトップを表示
+def month_min_top() :
+    df_mon = df.resample(rule = "M").min()
+    df_mon = df_mon.sort_values('step',ascending=False)
+    month_top_com(df_mon)
+
+def month_top_com(df_top) :
     i = 0 
-    for index,row in df_mon.head(5).iterrows() :
+    for index,row in df_top.head(5).iterrows() :
         i += 1
         date_str = index.strftime('%Y/%m')
         if index.year == lastdate.year and  index.month == lastdate.month :
             date_str = f'<span class=red>{date_str}</span>'
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
-#   月ごとの中央値のトップを表示
-def month_median_top() :
-    df_mon = df.resample(rule = "M").median()
-    df_mon = df_mon.sort_values('step',ascending=False)
-    i = 0 
-    for index,row in df_mon.head(5).iterrows() :
-        i += 1
-        date_str = index.strftime('%Y/%m')
-        if index.year == lastdate.year and  index.month == lastdate.month :
-            date_str = f'<span class=red>{date_str}</span>'
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
 
 def calc_move_ave() :
@@ -441,6 +451,12 @@ def parse_template() :
             continue
         if "%month_median_top%" in line :
             month_median_top()
+            continue
+        if "%month_max_top%" in line :
+            month_max_top()
+            continue
+        if "%month_min_top%" in line :
+            month_min_top()
             continue
         if "%today%" in line :
             today(line)
