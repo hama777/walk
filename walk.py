@@ -12,7 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-version = "1.32"       # 24/07/16
+# 25/01/03 v1.33 現在年を最終年にする 
+version = "1.33"       
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -39,7 +40,6 @@ out = ""
 logf = ""
 pixela_url = ""
 pixela_token = ""
-end_year = 2024  #  データが存在する最終年
 
 lastdate = ""    #  最終データ日付   datetime.date型
 datafile = ""
@@ -51,12 +51,14 @@ lasthh = 0       #  何時までのデータか
 yearinfo = {}    #  年ごとの平均
 
 def main_proc():
-    global  datafile,logf
+    global  datafile,logf,end_year
     locale.setlocale(locale.LC_TIME, '')
     logf = open(logfile,'a',encoding='utf-8')
     logf.write("\n=== start %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
     
     read_config()
+    date_settings()
+    end_year = today_yy    #  データが存在する最終年
     if datafile == "" :
         datafile = data_bak_file
     if not os.path.isfile(datafile) :
@@ -386,8 +388,20 @@ def ftp_upload() :
     with FTP_TLS(host=ftp_host, user=ftp_user, passwd=ftp_pass) as ftp:
         ftp.storbinary('STOR {}'.format(ftp_url), open(resultfile, 'rb'))
 
+def date_settings():
+    global  today_date,today_mm,today_dd,today_yy,today_datetime,today_hh
+
+    today_datetime = datetime.datetime.today()   # datetime 型
+    today_date = datetime.date.today()           # date 型
+    today_mm = today_date.month
+    today_dd = today_date.day
+    today_yy = today_date.year
+    today_hh = today_datetime.hour     #  現在の 時
+
+
 def today(s):
-    d = datetime.datetime.today().strftime("%m/%d %H:%M")
+    #d = datetime.datetime.today().strftime("%m/%d %H:%M")
+    d = today_datetime.strftime("%m/%d %H:%M")
     s = s.replace("%today%",d)
     out.write(s)
 
