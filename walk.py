@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/01/13 v1.34 年間の週移動平均ランキング追加 
-version = "1.34"       
+# 25/01/14 v1.35 半年間の週移動平均ランキング追加 
+version = "1.35"       
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -241,36 +241,27 @@ def calc_move_ave() :
     df_movav['step'] = df_movav['step'].rolling(mov_ave_dd).mean()
     df_movav = df_movav.tail(priod)
 
-#   週間移動平均ランキング
+#   週間移動平均ランキング  総合
 def rank_week(flg) :
-    global df_rank_week
-    mov_ave_dd = 7 
     df_rank_week = df.copy()
-    df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
-    df_rank_week = df_rank_week.sort_values('step',ascending=False)
-    i = 0
-    for index , row in df_rank_week.head(20).iterrows() :
-        i += 1
-        if flg == 0 :
-            if i >= 11 :
-                break 
-        if flg == 1 :
-            if i <= 10 :
-                continue 
+    rank_week_com(df_rank_week,flg)
 
-        date_str = index.strftime('%Y/%m/%d')
-        if index.date() == lastdate :      # 最終データなら赤字にする
-            date_str = f'<span class=red>{date_str}</span>'
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
-
+#   週間移動平均ランキング   365日
 def rank_week_of_year(flg) :
-    global df_rank_week
-    mov_ave_dd = 7 
     df_rank_week = df.tail(365).copy()
-    df_rank_week['step'] = df_rank_week['step'].rolling(mov_ave_dd).mean()
-    df_rank_week = df_rank_week.sort_values('step',ascending=False)
+    rank_week_com(df_rank_week,flg)
+
+#   週間移動平均ランキング   180日
+def rank_week_of_half_year(flg) :
+    df_rank_week = df.tail(180).copy()
+    rank_week_com(df_rank_week,flg)
+
+def rank_week_com(df_rank,flg) :
+    mov_ave_dd = 7 
+    df_rank['step'] = df_rank['step'].rolling(mov_ave_dd).mean()
+    df_rank = df_rank.sort_values('step',ascending=False)
     i = 0
-    for index , row in df_rank_week.head(20).iterrows() :
+    for index , row in df_rank.head(20).iterrows() :
         i += 1
         if flg == 0 :
             if i >= 11 :
@@ -283,7 +274,6 @@ def rank_week_of_year(flg) :
         if index.date() == lastdate :      # 最終データなら赤字にする
             date_str = f'<span class=red>{date_str}</span>'
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
-
 
 def post_pixela() :
     if debug == 1 :
@@ -487,6 +477,12 @@ def parse_template() :
             continue
         if "%rank_week_of_year2%" in line :
             rank_week_of_year(1)
+            continue
+        if "%rank_week_of_half_year1%" in line :
+            rank_week_of_half_year(0)
+            continue
+        if "%rank_week_of_half_year2%" in line :
+            rank_week_of_half_year(1)
             continue
         if "%month_ave_top%" in line :
             month_ave_top()
