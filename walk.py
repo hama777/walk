@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/01/16 v1.36 週移動平均最低ランキング追加 
-version = "1.36"       
+# 25/03/25 v1.37 今月の平均値の順位追加 
+version = "1.37"       
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -77,7 +77,6 @@ def main_proc():
         os.remove(datafile)
     logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
     logf.close()
-
 
 def read_data():
     global datelist,steplist,lasthh
@@ -195,6 +194,13 @@ def create_dataframe() :
     last30 = df.tail(30)
     monrank = last30.sort_values('step',ascending=False)
     monrank = monrank.head(10)
+
+#   今月の平均値の順位と件数を返す
+def month_ave_order() :
+    df_mon = df.resample(rule = "M").mean()
+    order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
+    count = len(df_mon)
+    return order,count
 
 #   月ごとの平均値のトップを表示
 def month_ave_top() :
@@ -522,6 +528,10 @@ def parse_template() :
             continue
         if "%month_min_top%" in line :
             month_min_top()
+            continue
+        if "%month_ave_order%" in line :
+            oerder,count = month_ave_order()
+            out.write(f'{oerder}/{count}\n')
             continue
         if "%today%" in line :
             today(line)
