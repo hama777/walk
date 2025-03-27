@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/03/25 v1.37 今月の平均値の順位追加 
-version = "1.37"       
+# 25/03/27 v1.38 今月の順位追加 
+version = "1.38"       
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -202,6 +202,20 @@ def month_ave_order() :
     count = len(df_mon)
     return order,count
 
+#   今月の最大値の順位と件数を返す
+def month_max_order() :
+    df_mon = df.resample(rule = "M").max()
+    order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
+    count = len(df_mon)
+    return order,count
+
+#   今月の最小値の順位と件数を返す
+def month_min_order() :
+    df_mon = df.resample(rule = "M").min()
+    order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
+    count = len(df_mon)
+    return order,count
+
 #   月ごとの平均値のトップを表示
 def month_ave_top() :
     df_mon = df.resample(rule = "M").mean()
@@ -234,8 +248,6 @@ def month_top_com(df_top) :
         if index.year == lastdate.year and  index.month == lastdate.month :
             date_str = f'<span class=red>{date_str}</span>'
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
-
-
 
 def calc_move_ave() :
     global df_movav
@@ -530,8 +542,12 @@ def parse_template() :
             month_min_top()
             continue
         if "%month_ave_order%" in line :
-            oerder,count = month_ave_order()
-            out.write(f'{oerder}/{count}\n')
+            order,count = month_ave_order()
+            out.write(f'{order}/{count}\n')
+            order,count = month_max_order()
+            out.write(f'最大値順位 :{order}/{count}\n')
+            order,count = month_min_order()
+            out.write(f'最小値順位 :{order}/{count}\n')
             continue
         if "%today%" in line :
             today(line)
