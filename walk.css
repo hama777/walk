@@ -1,11 +1,12 @@
-/*  コメント */
+/*  25/04/07 v1.39 月別歩数統計を2列にした  */
 table, td, th { 
     font-family: "Meiryo UI" ; 
     font-size: 14px; 
     border: 1px #1C79C6 solid;  
     border-collapse: collapse; 
     padding: 3px; 
-    margin-left: 100px;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 table.rank {
     margin-top: 5px;
