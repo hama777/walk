@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 25/03/25 v1.37 今月の平均値の順位追加    -->
+    <!-- 25/04/07 v1.39 月別歩数統計を2列にした    -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -157,12 +157,21 @@
     <h2>月別歩数グラフ</h2>
     <div id="reception_count" style="width:900px; height:350px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>月別歩数統計</h2>
-    <table>
-    <tr>
-    <th>年月</th><th>平均</th><th>中央</th><th>標準偏差</th><th>最大</th><th>最小</th>
-    </tr>
-    %month_table
-    </table>
+    <div class="flex">
+            <table>
+                <tr>
+                <th>年月</th><th>平均</th><th>中央</th><th>標準偏差</th><th>最大</th><th>最小</th>
+                </tr>
+                %month_table1
+                </table>
+            <table>
+                <tr>
+                <th>年月</th><th>平均</th><th>中央</th><th>標準偏差</th><th>最大</th><th>最小</th>
+                </tr>
+                %month_table2
+                </table>
+    </div>
+
     <br>
     <h2>ランキング</h2>
     <div class="flex">
