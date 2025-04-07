@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/03/27 v1.38 今月の順位追加 
-version = "1.38"       
+# 25/04/07 v1.39 月別歩数統計を2列にした
+version = "1.39"       
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -385,8 +385,14 @@ def daily_hist() :
         dd = ix.strftime('%d')
         out.write(f"['{dd}',{step:5.0f}],") 
 
-def month_table():
+def month_table(col):
+    n = 0 
+    limit = int(len(statinfo) / 2 ) + 1 
     for yymm,monthinfo in statinfo.items() :
+        n += 1
+        if multi_col(n,col,limit) :
+            continue
+
         out.write(f'<tr><td>{int(yymm/100)}/{yymm % 100:02} </td>')
         out.write(f'<td align="right"> {monthinfo["mean"]:5.0f}</td>')
         out.write(f'<td align="right"> {monthinfo["median"]:5.0f}</td>')
@@ -395,6 +401,8 @@ def month_table():
         out.write(f'<td align="right"> {monthinfo["min"]:8d} ({monthinfo["mindate"]})</td>')
         out.write("</tr>")
     
+    if col == 1 :
+        return 
     out.write(f'<tr><td>全体 </td>')
     out.write(f'<td align="right"> {allinfo["mean"]:5.0f}</td>')
     out.write(f'<td align="right"> {allinfo["median"]:5.0f}</td>')
@@ -449,6 +457,18 @@ def curdate(s) :
     s = s.replace("%lastdate%",d)
     out.write(s)
 
+#   複数カラムの場合の判定
+#     n  ...  何行目か     col ... 何カラム目か
+#     表示しない場合(continueする場合) true を返す
+def multi_col(n,col,limit) :
+    if col == 1 :
+        if n > limit :
+            return True
+    if col == 2 :
+        if n <= limit :
+            return True
+    return False
+
 def parse_template() :
     global out 
     f = open(templatefile , 'r', encoding='utf-8')
@@ -469,8 +489,11 @@ def parse_template() :
         if "%daily_movav" in line :
             daily_movav()
             continue
-        if "%month_table" in line :
-            month_table()
+        if "%month_table1" in line :
+            month_table(1)
+            continue
+        if "%month_table2" in line :
+            month_table(2)
             continue
         if "%ranking_all1" in line :
             rank_common(allrank,0)
