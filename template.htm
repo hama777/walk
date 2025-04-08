@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 25/04/07 v1.39 月別歩数統計を2列にした    -->
+    <!-- 25/04/08 v1.40 表示順序変更   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -154,6 +154,8 @@
     <span style="font-size:12px;">Ver : %version%</span>
     <span style="font-size:12px;">実行日時   : %today%</span>
     <span style="font-size:12px;">最終データ : %lastdate%</span>
+    <h2>日別グラフ</h2>
+    <div id="daily_graph" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>月別歩数グラフ</h2>
     <div id="reception_count" style="width:900px; height:350px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>月別歩数統計</h2>
@@ -248,14 +250,11 @@
 
 
     <br>
-    <h2>日別グラフ</h2>
-    <div id="daily_graph" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <h2>歩数ヒストグラム</h2>
     <div id="daily_hist" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <h2>7日移動平均</h2>
     <div id="daily_movav" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
 
-    <h2>状況</h2>
-    <iframe src="https://pixe.la/v1/users/hama777/graphs/walk?mode=simple" height="155" width="720" frameborder="0">
-    </iframe>
     <h2>年別・四半期グラフ</h2>
     <div class="flex">
         <div class='frame'>
@@ -267,6 +266,9 @@
             </div>
         </div>
     </div>
+    <h2>状況</h2>
+    <iframe src="https://pixe.la/v1/users/hama777/graphs/walk?mode=simple" height="155" width="720" frameborder="0">
+    </iframe>
     <h2>移動平均ランキング(最高)</h2>
     <div class="flex">
         <div class='frame'>
