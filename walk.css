@@ -1,4 +1,4 @@
-/*  25/04/07 v1.39 月別歩数統計を2列にした  */
+/*  25/04/08 v1.40 td.all 追加  */
 table, td, th { 
     font-family: "Meiryo UI" ; 
     font-size: 14px; 
@@ -39,6 +39,10 @@ th {
 tr { 
     background-color : #ffffff;
 }
+td.all { 
+    background-color : #f5d5d9;
+}
+
 tr:nth-child(2n+1) { 
     background-color : #e8ffe2;
 }
