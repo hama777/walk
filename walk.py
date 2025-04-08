@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/04/07 v1.39 月別歩数統計を2列にした
-version = "1.39"       
+# 25/04/08 v1.40 月別歩数統計の合計行の色変更
+version = "1.40"       
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -403,12 +403,12 @@ def month_table(col):
     
     if col == 1 :
         return 
-    out.write(f'<tr><td>全体 </td>')
-    out.write(f'<td align="right"> {allinfo["mean"]:5.0f}</td>')
-    out.write(f'<td align="right"> {allinfo["median"]:5.0f}</td>')
-    out.write(f'<td align="right"> {allinfo["std"]:5.0f}</td>')
-    out.write(f'<td align="right"> {allinfo["max"]:8d} ({allinfo["maxdate"]}) </td>')
-    out.write(f'<td align="right"> {allinfo["min"]:8d} ({allinfo["mindate"]}) </td>')
+    out.write(f'<tr><td class=all>全体 </td>')
+    out.write(f'<td class=all align="right"> {allinfo["mean"]:5.0f}</td>')
+    out.write(f'<td class=all align="right"> {allinfo["median"]:5.0f}</td>')
+    out.write(f'<td class=all align="right"> {allinfo["std"]:5.0f}</td>')
+    out.write(f'<td class=all align="right"> {allinfo["max"]:8d} ({allinfo["maxdate"]}) </td>')
+    out.write(f'<td class=all align="right"> {allinfo["min"]:8d} ({allinfo["mindate"]}) </td>')
     out.write("</tr>")
 
 
