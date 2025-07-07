@@ -12,8 +12,10 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/04/08 v1.40 月別歩数統計の合計行の色変更
-version = "1.40"       
+# 25/07/07 v1.41 月別ランキングを10位までにした
+version = "1.41"
+
+# TODO:    月別歩数集計
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -242,12 +244,12 @@ def month_min_top() :
 
 def month_top_com(df_top) :
     i = 0 
-    for index,row in df_top.head(5).iterrows() :
+    for index,row in df_top.head(10).iterrows() :
         i += 1
         date_str = index.strftime('%Y/%m')
         if index.year == lastdate.year and  index.month == lastdate.month :
             date_str = f'<span class=red>{date_str}</span>'
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
+        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
 def calc_move_ave() :
     global df_movav
