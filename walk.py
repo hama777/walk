@@ -12,10 +12,9 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/07 v1.41 月別ランキングを10位までにした
-version = "1.41"
+# 25/07/09 v1.42 月別(年無視)歩数集計追加
+version = "1.42"
 
-# TODO:    月別歩数集計
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -72,6 +71,7 @@ def main_proc():
     create_dataframe()
     calc_move_ave()
     post_pixela()
+    #aggregate_by_month()  #   temp
     parse_template()
     ftp_upload()
     if debug == 0 :
@@ -413,6 +413,17 @@ def month_table(col):
     out.write(f'<td class=all align="right"> {allinfo["min"]:8d} ({allinfo["mindate"]}) </td>')
     out.write("</tr>")
 
+#   月ごとの集計  年は無視する
+def aggregate_by_month() :
+    df_mon = df.copy()
+    df_mon['step'] = pd.to_numeric(df_mon['step'], errors='coerce')
+    df_mon['month'] = df_mon.index.month
+    monthly_stats = df_mon.groupby('month')['step'].agg(mean='mean', max='max', min='min')
+
+    for index,row in monthly_stats.iterrows() :
+        out.write(f'<tr><td align="right">{index}</td><td align="right">{row["mean"]:6.0f}</td>'
+                  f'<td align="right">{row["max"]:6.0f}</td><td align="right">{row["min"]:6.0f}</td></tr>\n')
+
 
 def read_config() : 
     global ftp_host,ftp_user,ftp_pass,ftp_url,debug,datafile,pixela_url,pixela_token,debug
@@ -565,6 +576,9 @@ def parse_template() :
             continue
         if "%month_min_top%" in line :
             month_min_top()
+            continue
+        if "%aggregate_by_month%" in line :
+            aggregate_by_month()
             continue
         if "%month_ave_order%" in line :
             order,count = month_ave_order()
