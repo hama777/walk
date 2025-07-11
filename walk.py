@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/09 v1.42 月別(年無視)歩数集計追加
-version = "1.42"
+# 25/07/11 v1.43 同月比較統計追加
+version = "1.43"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -72,6 +72,7 @@ def main_proc():
     calc_move_ave()
     post_pixela()
     #aggregate_by_month()  #   temp
+    #year_on_year_comparison()
     parse_template()
     ftp_upload()
     if debug == 0 :
@@ -424,6 +425,30 @@ def aggregate_by_month() :
         out.write(f'<tr><td align="right">{index}</td><td align="right">{row["mean"]:6.0f}</td>'
                   f'<td align="right">{row["max"]:6.0f}</td><td align="right">{row["min"]:6.0f}</td></tr>\n')
 
+#   前年同月差を求める
+def year_on_year_comparison() :
+    df_mon = df.copy()
+    df_mon['step'] = pd.to_numeric(df_mon['step'], errors='coerce')
+    df_mon['year'] = df_mon.index.year
+    df_mon['month'] = df_mon.index.month
+    df_this_month = df_mon[df_mon['month'] == today_mm]
+    stats_by_year = df_this_month.groupby('year')['step'].agg(
+        mean='mean',
+        max='max',
+        min='min'
+    ).reset_index()
+    for index,row in stats_by_year.iterrows() :
+        out.write(f'<tr><td align="right">{row["year"]:5.0f}</td><td align="right">{row["mean"]:6.0f}</td>'
+                  f'<td align="right">{row["max"]:6.0f}</td><td align="right">{row["min"]:6.0f}</td></tr>\n')
+
+#   前年同月差を求める
+def year_on_year_comparison_old() :
+    prev_yy = today_yy -1 
+    prev_yymm = prev_yy * 100 + today_mm
+    prev_info = statinfo[prev_yymm]
+    cur_yymm = today_yy * 100 + today_mm
+    cur_info = statinfo[cur_yymm]
+    print(prev_info['mean'],cur_info['mean'])
 
 def read_config() : 
     global ftp_host,ftp_user,ftp_pass,ftp_url,debug,datafile,pixela_url,pixela_token,debug
@@ -576,6 +601,9 @@ def parse_template() :
             continue
         if "%month_min_top%" in line :
             month_min_top()
+            continue
+        if "%year_on_year_comparison%" in line :
+            year_on_year_comparison()
             continue
         if "%aggregate_by_month%" in line :
             aggregate_by_month()
