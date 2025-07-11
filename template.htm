@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 25/07/09 v1.42 月別(年無視)歩数集計追加   -->
+    <!-- 25/07/11 v1.43 同月比較統計追加   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -359,7 +359,13 @@
             </table>
         </div>
     </div>
-    <h2>月別統計</h2>
+    <h2>同月比較統計</h2>
+    <h3>今月</h3>
+    <table class="rank">
+        <tr><th>年</th><th>平均</th><th>最大</th><th>最小</th></tr>
+        %year_on_year_comparison%
+    </table>
+    <h3>全月</h3>
     <table class="rank">
         <tr><th>月</th><th>平均</th><th>最大</th><th>最小</th></tr>
         %aggregate_by_month%
