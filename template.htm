@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 25/07/11 v1.43 同月比較統計追加   -->
+    <!-- 25/07/14 v1.44 同月比較グラフ追加   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -145,6 +145,30 @@
             };
     
             var chart = new google.visualization.LineChart(document.getElementById('daily_movav'));
+            chart.draw(data, options);
+        }
+    );
+</script>
+<script type="text/javascript">
+    google.load("visualization", "1", {packages:["corechart"]});
+    google.setOnLoadCallback(
+        function() {
+            var data = google.visualization.arrayToDataTable([
+    [       '', '歩数'],
+%aggregate_by_month_graph%
+            ]);
+    
+            var options = {
+                title: '同月グラフ',
+                colors: ['green'] ,
+                vAxis: {minValue:0},
+                hAxis: {title: '月'},
+                chartArea: { backgroundColor: '#f1f7f9', left:80,right:50 },
+                backgroundColor: '#f1f8e9',
+                legend: {  position: 'none'  }
+            };
+    
+            var chart = new google.visualization.ColumnChart(document.getElementById('aggregate_by_month_graph'));
             chart.draw(data, options);
         }
     );
@@ -370,5 +394,7 @@
         <tr><th>月</th><th>平均</th><th>最大</th><th>最小</th></tr>
         %aggregate_by_month%
     </table>
-</body>
+    <div id="aggregate_by_month_graph" style="width:600px; height:300px; margin-top:20px ;  
+    margin-bottom:20px ; margin-left:  30px; margin-right:  30px;" >
+    </body>
 </html>
