@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/11 v1.43 同月比較統計追加
-version = "1.43"
+# 25/07/14 v1.44 同月比較グラフ追加
+version = "1.44"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -71,8 +71,7 @@ def main_proc():
     create_dataframe()
     calc_move_ave()
     post_pixela()
-    #aggregate_by_month()  #   temp
-    #year_on_year_comparison()
+    create_monthly_stats()
     parse_template()
     ftp_upload()
     if debug == 0 :
@@ -414,18 +413,24 @@ def month_table(col):
     out.write(f'<td class=all align="right"> {allinfo["min"]:8d} ({allinfo["mindate"]}) </td>')
     out.write("</tr>")
 
-#   月ごとの集計  年は無視する
-def aggregate_by_month() :
+#   月ごとの集計  年は無視する  df_monthly_stats を生成
+def create_monthly_stats() :
+    global df_monthly_stats
     df_mon = df.copy()
     df_mon['step'] = pd.to_numeric(df_mon['step'], errors='coerce')
     df_mon['month'] = df_mon.index.month
-    monthly_stats = df_mon.groupby('month')['step'].agg(mean='mean', max='max', min='min')
+    df_monthly_stats = df_mon.groupby('month')['step'].agg(mean='mean', max='max', min='min')
 
-    for index,row in monthly_stats.iterrows() :
+def aggregate_by_month() :
+    for index,row in df_monthly_stats.iterrows() :
         out.write(f'<tr><td align="right">{index}</td><td align="right">{row["mean"]:6.0f}</td>'
                   f'<td align="right">{row["max"]:6.0f}</td><td align="right">{row["min"]:6.0f}</td></tr>\n')
 
-#   前年同月差を求める
+def aggregate_by_month_graph() :
+    for index,row in df_monthly_stats.iterrows() :
+        out.write(f"['{index:02}',{row["mean"]:6.0f}],") 
+
+#   前年同月データの統計を求める 
 def year_on_year_comparison() :
     df_mon = df.copy()
     df_mon['step'] = pd.to_numeric(df_mon['step'], errors='coerce')
@@ -440,6 +445,9 @@ def year_on_year_comparison() :
     for index,row in stats_by_year.iterrows() :
         out.write(f'<tr><td align="right">{row["year"]:5.0f}</td><td align="right">{row["mean"]:6.0f}</td>'
                   f'<td align="right">{row["max"]:6.0f}</td><td align="right">{row["min"]:6.0f}</td></tr>\n')
+
+
+
 
 #   前年同月差を求める
 def year_on_year_comparison_old() :
@@ -607,6 +615,9 @@ def parse_template() :
             continue
         if "%aggregate_by_month%" in line :
             aggregate_by_month()
+            continue
+        if "%aggregate_by_month_graph%" in line :
+            aggregate_by_month_graph()
             continue
         if "%month_ave_order%" in line :
             order,count = month_ave_order()
