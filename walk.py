@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/14 v1.44 同月比較グラフ追加
-version = "1.44"
+# 25/07/15 v1.45 同月比較グラフ追加
+version = "1.45"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -72,6 +72,7 @@ def main_proc():
     calc_move_ave()
     post_pixela()
     create_monthly_stats()
+    create_year_on_year()
     parse_template()
     ftp_upload()
     if debug == 0 :
@@ -428,35 +429,32 @@ def aggregate_by_month() :
 
 def aggregate_by_month_graph() :
     for index,row in df_monthly_stats.iterrows() :
-        out.write(f"['{index:02}',{row["mean"]:6.0f}],") 
+        out.write(f"['{index:02}',{row['mean']:6.0f}],") 
 
-#   前年同月データの統計を求める 
-def year_on_year_comparison() :
+#   前年同月データの統計を求める    df_stats_by_year を生成する
+def create_year_on_year() :
+    global df_stats_by_year
     df_mon = df.copy()
     df_mon['step'] = pd.to_numeric(df_mon['step'], errors='coerce')
     df_mon['year'] = df_mon.index.year
     df_mon['month'] = df_mon.index.month
     df_this_month = df_mon[df_mon['month'] == today_mm]
-    stats_by_year = df_this_month.groupby('year')['step'].agg(
+    df_stats_by_year = df_this_month.groupby('year')['step'].agg(
         mean='mean',
         max='max',
         min='min'
     ).reset_index()
-    for index,row in stats_by_year.iterrows() :
+
+def year_on_year_comparison() :
+    for index,row in df_stats_by_year.iterrows() :
         out.write(f'<tr><td align="right">{row["year"]:5.0f}</td><td align="right">{row["mean"]:6.0f}</td>'
                   f'<td align="right">{row["max"]:6.0f}</td><td align="right">{row["min"]:6.0f}</td></tr>\n')
 
-
-
-
-#   前年同月差を求める
-def year_on_year_comparison_old() :
-    prev_yy = today_yy -1 
-    prev_yymm = prev_yy * 100 + today_mm
-    prev_info = statinfo[prev_yymm]
-    cur_yymm = today_yy * 100 + today_mm
-    cur_info = statinfo[cur_yymm]
-    print(prev_info['mean'],cur_info['mean'])
+def year_on_year_graph() :
+    for index,row in df_stats_by_year.iterrows() :
+        yy = row["year"]
+        ave = row['mean']
+        out.write(f"['{yy:5.0f}',{ave:6.0f}],") 
 
 def read_config() : 
     global ftp_host,ftp_user,ftp_pass,ftp_url,debug,datafile,pixela_url,pixela_token,debug
@@ -612,6 +610,9 @@ def parse_template() :
             continue
         if "%year_on_year_comparison%" in line :
             year_on_year_comparison()
+            continue
+        if "%year_on_year_graph%" in line :
+            year_on_year_graph()
             continue
         if "%aggregate_by_month%" in line :
             aggregate_by_month()
