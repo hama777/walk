@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/15 v1.45 同月比較グラフ追加
-version = "1.45"
+# 25/07/30 v1.46 年ごとの情報表示
+version = "1.46"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -50,6 +50,8 @@ dailyindex = []  #  毎日のグラフ日付
 dailystep  = []  #  毎日のグラフ歩数
 lasthh = 0       #  何時までのデータか
 yearinfo = {}    #  年ごとの平均
+year_info = {}    #  年ごとの情報  平均、中央値、最大、最小、SD
+
 
 def main_proc():
     global  datafile,logf,end_year
@@ -150,6 +152,10 @@ def create_dataframe() :
     for yy in range(2021, end_year+1) :    # 2021年 ～ 2024年
         dfyy = df[df.index.year == yy]
         yearinfo[yy] = dfyy.mean()['step']
+        yinfo = {}
+        yinfo['mean'] = dfyy.mean()['step']
+        yinfo['max'] = dfyy.max()['step']
+        year_info[yy] = yinfo
         for mm  in range(1,13) :     #  1月 ～ 12月
             yymm = yy*100+mm
             cur_dfyymm = dfyymm
@@ -368,6 +374,11 @@ def year_graph():
     for yy in range(2021, end_year+1) :    # 2021年 ～ 2023年
         out.write(f"['{yy}',{yearinfo[yy]:5.0f}],") 
 
+def year_info_table() :
+    for yy in range(2021, end_year+1) :    # 2021年 ～ 2023年
+        yinfo = year_info[yy]
+        out.write(f"<tr><td>{yy}</td><td>{yinfo['mean']:5.0f}</td><td>{yinfo['max']:5.0f}</td></tr>\n") 
+
 def quar_graph():
     for name,ave in zip(quar_name,quar_ave) :
         haxis_name = name.strftime("%y/%m")
@@ -556,6 +567,9 @@ def parse_template() :
             continue
         if "%year_graph" in line :
             year_graph()
+            continue
+        if "%year_info_table" in line :
+            year_info_table()
             continue
         if "%quar_graph" in line :
             quar_graph()
