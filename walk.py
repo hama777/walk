@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/30 v1.46 年ごとの情報表示
-version = "1.46"
+# 25/07/31 v1.47 年ごとの情報に中央値など追加
+version = "1.47"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -155,6 +155,9 @@ def create_dataframe() :
         yinfo = {}
         yinfo['mean'] = dfyy.mean()['step']
         yinfo['max'] = dfyy.max()['step']
+        yinfo['min'] = dfyy.min()['step']
+        yinfo['std'] = dfyy.std()['step']
+        yinfo['median'] = dfyy.median()['step']
         year_info[yy] = yinfo
         for mm  in range(1,13) :     #  1月 ～ 12月
             yymm = yy*100+mm
@@ -377,7 +380,10 @@ def year_graph():
 def year_info_table() :
     for yy in range(2021, end_year+1) :    # 2021年 ～ 2023年
         yinfo = year_info[yy]
-        out.write(f"<tr><td>{yy}</td><td>{yinfo['mean']:5.0f}</td><td>{yinfo['max']:5.0f}</td></tr>\n") 
+        out.write(f"<tr><td>{yy}</td><td align='right'>{yinfo['mean']:5.0f}</td>"
+                  f"<td align='right'>{yinfo['median']:5.0f}</td>"
+                  f"<td align='right'>{yinfo['std']:5.0f}</td><td align='right'>{yinfo['max']:5.0f}</td>"
+                  f"<td align='right'>{yinfo['min']:5.0f}</td></tr>\n") 
 
 def quar_graph():
     for name,ave in zip(quar_name,quar_ave) :
