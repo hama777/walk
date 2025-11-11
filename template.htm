@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 25/07/31 v1.47 年ごとの情報に中央値など追加   -->
+    <!-- 25/11/11 v1.48 月別グラフサイズ変更   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -17,6 +17,7 @@
         
                 var options = {
                     colors: ['green'] ,
+                    vAxis: {minValue:0},
                     hAxis: {title: '月'},
                     chartArea: { backgroundColor: '#f1f7f9' , left:80,right:50},
                     backgroundColor: '#f1f8e9' ,
@@ -205,7 +206,7 @@
     <h2>日別グラフ</h2>
     <div id="daily_graph" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>月別歩数グラフ</h2>
-    <div id="reception_count" style="width:900px; height:350px;  margin-top:20px ; margin-left:  50px; " ></div>
+    <div id="reception_count" style="width:1000px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>月別歩数統計</h2>
     <div class="flex">
             <table>
