@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/07/31 v1.47 年ごとの情報に中央値など追加
-version = "1.47"
+# 25/11/11 v1.48 月別グラフを2022年から表示に変更
+version = "1.48"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -209,7 +209,7 @@ def create_dataframe() :
 
 #   今月の平均値の順位と件数を返す
 def month_ave_order() :
-    df_mon = df.resample(rule = "M").mean()
+    df_mon = df.resample(rule = "ME").mean()
     order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
     count = len(df_mon)
     return order,count
@@ -367,8 +367,11 @@ def rank_common(rankdata,flg) :
             date_str = f'<span class=red>{date_str}</span>'
         out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{date_str}</td></tr>')
 
+#   月別グラフ    2022年から表示
 def month_graph() :
     for yymm,ave in zip(yymm_list,ave_list) :
+        if yymm.year <= 2021 :
+            continue
         yy = yymm.year - 2000
         mm = yymm.month
         out.write(f"['{yy:02}/{mm:02}',{ave:5.0f}],") 
