@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/11/11 v1.48 月別グラフを2022年から表示に変更
-version = "1.48"
+# 25/11/14 v1.49 ワーニングを解消
+version = "1.49"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -126,11 +126,11 @@ def create_dataframe() :
 
     #  月別集計
     #  m_ave は { 'step' : {データ} } で データは {'日付': 歩数 } の形式
-    m_ave = df.resample(rule = "M").mean().to_dict()
-    m_max = df.resample(rule = "M").max().to_dict()
-    m_min = df.resample(rule = "M").min().to_dict()
+    m_ave = df.resample(rule = "ME").mean().to_dict()
+    m_max = df.resample(rule = "ME").max().to_dict()
+    m_min = df.resample(rule = "ME").min().to_dict()
 
-    q = df.resample(rule = "Q").mean().to_dict()
+    q = df.resample(rule = "QE").mean().to_dict()
     s = q['step']
     quar_name = s.keys()
     quar_ave = s.values()
@@ -210,45 +210,45 @@ def create_dataframe() :
 #   今月の平均値の順位と件数を返す
 def month_ave_order() :
     df_mon = df.resample(rule = "ME").mean()
-    order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
+    order = int(df_mon.rank(method='min',ascending=False).iloc[-1].item())
     count = len(df_mon)
     return order,count
 
 #   今月の最大値の順位と件数を返す
 def month_max_order() :
-    df_mon = df.resample(rule = "M").max()
-    order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
+    df_mon = df.resample(rule = "ME").max()
+    order = int(df_mon.rank(method='min',ascending=False).iloc[-1].item())
     count = len(df_mon)
     return order,count
 
 #   今月の最小値の順位と件数を返す
 def month_min_order() :
-    df_mon = df.resample(rule = "M").min()
-    order = int(df_mon.rank(method='min',ascending=False).iloc[-1])
+    df_mon = df.resample(rule = "ME").min()
+    order = int(df_mon.rank(method='min',ascending=False).iloc[-1].item())
     count = len(df_mon)
     return order,count
 
 #   月ごとの平均値のトップを表示
 def month_ave_top() :
-    df_mon = df.resample(rule = "M").mean()
+    df_mon = df.resample(rule = "ME").mean()
     df_mon = df_mon.sort_values('step',ascending=False)
     month_top_com(df_mon)
 
 #   月ごとの中央値のトップを表示
 def month_median_top() :
-    df_mon = df.resample(rule = "M").median()
+    df_mon = df.resample(rule = "ME").median()
     df_mon = df_mon.sort_values('step',ascending=False)
     month_top_com(df_mon)
 
 #   月ごとの最大値のトップを表示
 def month_max_top() :
-    df_mon = df.resample(rule = "M").max()
+    df_mon = df.resample(rule = "ME").max()
     df_mon = df_mon.sort_values('step',ascending=False)
     month_top_com(df_mon)
 
 #   月ごとの最小値のトップを表示
 def month_min_top() :
-    df_mon = df.resample(rule = "M").min()
+    df_mon = df.resample(rule = "ME").min()
     df_mon = df_mon.sort_values('step',ascending=False)
     month_top_com(df_mon)
 
@@ -268,8 +268,11 @@ def calc_move_ave() :
     priod = 90
     mov_ave_dd = 7 
     df_movav = df.tail(priod+mov_ave_dd)
-    df_movav['step'] = df_movav['step'].rolling(mov_ave_dd).mean()
-    df_movav = df_movav.tail(priod)
+    #df_movav['step'] = df_movav['step'].rolling(mov_ave_dd).mean()
+    #df_movav = df_movav.tail(priod)
+    df_tmp = df_movav.copy()
+    df_tmp['step'] = df_tmp['step'].rolling(mov_ave_dd).mean()
+    df_movav = df_tmp.tail(priod)
 
 #   週間移動平均ランキング  総合
 def rank_week(flg) :
