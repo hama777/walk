@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 25/11/14 v1.49 ワーニングを解消
-version = "1.49"
+# 26/01/15 v1.50 カラム処理変更
+version = "1.50"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +51,9 @@ dailystep  = []  #  毎日のグラフ歩数
 lasthh = 0       #  何時までのデータか
 yearinfo = {}    #  年ごとの平均
 year_info = {}    #  年ごとの情報  平均、中央値、最大、最小、SD
+month_table_col = 0 #  月別歩数統計  列制御
+ranking_all_col = 0 
+ranking_year_col = 0
 
 
 def main_proc():
@@ -337,20 +340,20 @@ def post_pixela() :
         response = requests.post(url=pixela_url, json=data, headers=headers,verify=False)
 
 
-def ranking_all1():   #  1位から10位
-    rank_common(allrank,0)
+# def ranking_all1():   #  1位から10位
+#     rank_common(allrank,0)
 
-def ranking_all2():    #  11位から20位
-    rank_common(allrank,1)
+# def ranking_all2():    #  11位から20位
+#     rank_common(allrank,1)
 
-def ranking_month():   #  過去30日のランキング
-    rank_common(monrank,0)
+# def ranking_month():   #  過去30日のランキング
+#     rank_common(monrank,0)
 
-def ranking_year():   #  今年のランキング
-    rank_common(yearrank,0)
+# def ranking_year():   #  今年のランキング
+#     rank_common(yearrank,0)
 
-def ranking_year2():   #  今年のランキング   11-20位
-    rank_common(yearrank,1)
+# def ranking_year2():   #  今年のランキング   11-20位
+#     rank_common(yearrank,1)
 
 def rank_common(rankdata,flg) :
     #  flg ..  0  1-10位を表示   1  11-20位を表示
@@ -411,12 +414,15 @@ def daily_hist() :
         dd = ix.strftime('%d')
         out.write(f"['{dd}',{step:5.0f}],") 
 
-def month_table(col):
+def month_table():
+    global month_table_col
+    month_table_col += 1
+
     n = 0 
     limit = int(len(statinfo) / 2 ) + 1 
     for yymm,monthinfo in statinfo.items() :
         n += 1
-        if multi_col(n,col,limit) :
+        if multi_col(n,month_table_col,limit) :
             continue
 
         out.write(f'<tr><td>{int(yymm/100)}/{yymm % 100:02} </td>')
@@ -427,7 +433,7 @@ def month_table(col):
         out.write(f'<td align="right"> {monthinfo["min"]:8d} ({monthinfo["mindate"]})</td>')
         out.write("</tr>")
     
-    if col == 1 :
+    if month_table_col == 1 :
         return 
     out.write(f'<tr><td class=all>全体 </td>')
     out.write(f'<td class=all align="right"> {allinfo["mean"]:5.0f}</td>')
@@ -537,7 +543,7 @@ def multi_col(n,col,limit) :
     return False
 
 def parse_template() :
-    global out 
+    global out , ranking_all_col,ranking_year_col
     f = open(templatefile , 'r', encoding='utf-8')
     out = open(resultfile,'w' ,  encoding='utf-8')
     for line in f :
@@ -556,27 +562,29 @@ def parse_template() :
         if "%daily_movav" in line :
             daily_movav()
             continue
-        if "%month_table1" in line :
-            month_table(1)
+        if "%month_table" in line :
+            month_table()
             continue
-        if "%month_table2" in line :
-            month_table(2)
+        # if "%month_table2" in line :
+        #     month_table(2)
+        #     continue
+        if "%ranking_all" in line :
+            rank_common(allrank,ranking_all_col)
+            ranking_all_col += 1
             continue
-        if "%ranking_all1" in line :
-            rank_common(allrank,0)
-            continue
-        if "%ranking_all2" in line :
-            rank_common(allrank,1)
-            continue
+        # if "%ranking_all2" in line :
+        #     rank_common(allrank,1)
+        #     continue
         if "%ranking_month" in line :
             rank_common(monrank,0)
             continue
         if "%ranking_year%" in line :
-            rank_common(yearrank,0)
+            rank_common(yearrank,ranking_year_col)
+            ranking_year_col += 1
             continue
-        if "%ranking_year2%" in line :
-            rank_common(yearrank,1)
-            continue
+        # if "%ranking_year2%" in line :
+        #     rank_common(yearrank,1)
+        #     continue
         if "%year_graph" in line :
             year_graph()
             continue
