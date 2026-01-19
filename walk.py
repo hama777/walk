@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/01/15 v1.50 カラム処理変更
-version = "1.50"
+# 26/01/19 v1.51 カラム処理変更
+version = "1.51"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -54,7 +54,9 @@ year_info = {}    #  年ごとの情報  平均、中央値、最大、最小、
 month_table_col = 0 #  月別歩数統計  列制御
 ranking_all_col = 0 
 ranking_year_col = 0
-
+rank_week_all_col = 0
+rank_week_year_col = 0
+rank_week_of_half_year_col = 0
 
 def main_proc():
     global  datafile,logf,end_year
@@ -278,28 +280,36 @@ def calc_move_ave() :
     df_movav = df_tmp.tail(priod)
 
 #   週間移動平均ランキング  総合
-def rank_week(flg) :
+#     flg .. 0 or 1  最高   2 or 3 最低
+def rank_week_all() :
+    global rank_week_all_col
+
     df_rank_week = df.copy()
-    if flg <= 1 :
-        rank_week_com(df_rank_week,flg)
+    if rank_week_all_col <= 1 :
+        rank_week_com(df_rank_week,rank_week_all_col)
     else :   # flg = 3 or 4
-        rank_week_com(df_rank_week,flg-2,True)
+        rank_week_com(df_rank_week,rank_week_all_col-2,True)
+    rank_week_all_col += 1
 
 #   週間移動平均ランキング   365日
-def rank_week_of_year(flg) :
+def rank_week_of_year() :
+    global rank_week_year_col
     df_rank_week = df.tail(365).copy()
-    if flg <= 1 :
-        rank_week_com(df_rank_week,flg)
+    if rank_week_year_col <= 1 :
+        rank_week_com(df_rank_week,rank_week_year_col)
     else :
-        rank_week_com(df_rank_week,flg-2,True)
+        rank_week_com(df_rank_week,rank_week_year_col-2,True)
+    rank_week_year_col += 1 
 
 #   週間移動平均ランキング   180日
-def rank_week_of_half_year(flg) :
+def rank_week_of_half_year() :
+    global rank_week_of_half_year_col
     df_rank_week = df.tail(180).copy()
-    if flg <= 1 :
-        rank_week_com(df_rank_week,flg)
+    if rank_week_of_half_year_col <= 1 :
+        rank_week_com(df_rank_week,rank_week_of_half_year_col)
     else :
-        rank_week_com(df_rank_week,flg-2,True)
+        rank_week_com(df_rank_week,rank_week_of_half_year_col-2,True)
+    rank_week_of_half_year_col += 1
 
 def rank_week_com(df_rank,flg,asc=False) :
     mov_ave_dd = 7 
@@ -338,22 +348,6 @@ def post_pixela() :
         else :
             data['quantity'] = str(row.step)
         response = requests.post(url=pixela_url, json=data, headers=headers,verify=False)
-
-
-# def ranking_all1():   #  1位から10位
-#     rank_common(allrank,0)
-
-# def ranking_all2():    #  11位から20位
-#     rank_common(allrank,1)
-
-# def ranking_month():   #  過去30日のランキング
-#     rank_common(monrank,0)
-
-# def ranking_year():   #  今年のランキング
-#     rank_common(yearrank,0)
-
-# def ranking_year2():   #  今年のランキング   11-20位
-#     rank_common(yearrank,1)
 
 def rank_common(rankdata,flg) :
     #  flg ..  0  1-10位を表示   1  11-20位を表示
@@ -565,16 +559,10 @@ def parse_template() :
         if "%month_table" in line :
             month_table()
             continue
-        # if "%month_table2" in line :
-        #     month_table(2)
-        #     continue
         if "%ranking_all" in line :
             rank_common(allrank,ranking_all_col)
             ranking_all_col += 1
             continue
-        # if "%ranking_all2" in line :
-        #     rank_common(allrank,1)
-        #     continue
         if "%ranking_month" in line :
             rank_common(monrank,0)
             continue
@@ -582,9 +570,6 @@ def parse_template() :
             rank_common(yearrank,ranking_year_col)
             ranking_year_col += 1
             continue
-        # if "%ranking_year2%" in line :
-        #     rank_common(yearrank,1)
-        #     continue
         if "%year_graph" in line :
             year_graph()
             continue
@@ -594,42 +579,42 @@ def parse_template() :
         if "%quar_graph" in line :
             quar_graph()
             continue
-        if "%rank_week1%" in line :
-            rank_week(0)
+        if "%rank_week_all%" in line :
+            rank_week_all()
             continue
-        if "%rank_week2%" in line :
-            rank_week(1)
+        # if "%rank_week2%" in line :
+        #     rank_week_all()
+        #     continue
+        if "%rank_week_of_year%" in line :
+            rank_week_of_year()
             continue
-        if "%rank_week_of_year1%" in line :
-            rank_week_of_year(0)
+        # if "%rank_week_of_year2%" in line :
+        #     rank_week_of_year(1)
+        #     continue
+        if "%rank_week_of_half_year%" in line :
+            rank_week_of_half_year()
             continue
-        if "%rank_week_of_year2%" in line :
-            rank_week_of_year(1)
-            continue
-        if "%rank_week_of_half_year1%" in line :
-            rank_week_of_half_year(0)
-            continue
-        if "%rank_week_of_half_year2%" in line :
-            rank_week_of_half_year(1)
-            continue
-        if "%rank_week1_low%" in line :
-            rank_week(2)
-            continue
-        if "%rank_week2_low%" in line :
-            rank_week(3)
-            continue
-        if "%rank_week_of_year1_low%" in line :
-            rank_week_of_year(2)
-            continue
-        if "%rank_week_of_year2_low%" in line :
-            rank_week_of_year(3)
-            continue
-        if "%rank_week_of_half_year1_low%" in line :
-            rank_week_of_half_year(2)
-            continue
-        if "%rank_week_of_half_year2_low%" in line :
-            rank_week_of_half_year(3)
-            continue
+        # if "%rank_week_of_half_year2%" in line :
+        #     rank_week_of_half_year(1)
+        #     continue
+        # if "%rank_week1_low%" in line :
+        #     rank_week_all()
+        #     continue
+        # if "%rank_week2_low%" in line :
+        #     rank_week(3)
+        #     continue
+        # if "%rank_week_of_year1_low%" in line :
+        #     rank_week_of_year(2)
+        #     continue
+        # if "%rank_week_of_year2_low%" in line :
+        #     rank_week_of_year(3)
+        #     continue
+        # if "%rank_week_of_half_year1_low%" in line :
+        #     rank_week_of_half_year(2)
+        #     continue
+        # if "%rank_week_of_half_year2_low%" in line :
+        #     rank_week_of_half_year(3)
+        #     continue
         if "%month_ave_top%" in line :
             month_ave_top()
             continue
@@ -673,7 +658,6 @@ def parse_template() :
 
     f.close()
     out.close()
-
 
 # ----------------------------------------------------------
 main_proc()
