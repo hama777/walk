@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/01/19 v1.51 カラム処理変更
-version = "1.51"
+# 26/02/27 v2.00 データをExcelから読むようにした
+version = "2.00"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +74,8 @@ def main_proc():
         logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
         logf.close()
         return
-    read_data()
+    read_data_excel()
+    #read_data()
     create_dataframe()
     calc_move_ave()
     post_pixela()
@@ -87,6 +88,16 @@ def main_proc():
         os.remove(datafile)
     logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
     logf.close()
+
+#   データをExcelから読む   アプリでgoogle drive に保存できなくなったため
+def read_data_excel():
+    global df
+    datafile = "daily.xlsx"
+    df = pd.read_excel(datafile,sheet_name ='歩数',usecols=[0, 1],
+                       header = 0, names=["date", "step",])  # 0,1 カラムのみ読み込み
+    df = df.dropna()
+    df['date'] = pd.to_datetime(df['date'])
+    print(df)
 
 def read_data():
     global datelist,steplist,lasthh
@@ -126,7 +137,7 @@ def read_data():
 def create_dataframe() :
     global df,yymm_list,ave_list,max_list,min_list,lastdate,allinfo,allrank,monrank,yearrank
     global dailyindex,dailystep,quar_name,quar_ave
-    df = pd.DataFrame(list(zip(datelist,steplist)), columns = ['date','step'])
+    #df = pd.DataFrame(list(zip(datelist,steplist)), columns = ['date','step'])
     df.set_index('date', inplace=True) 
 
     #  月別集計
