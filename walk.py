@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/02/27 v2.00 データをExcelから読むようにした
-version = "2.00"
+# 26/03/02 v2.01 歩数カラムをintに修正
+version = "2.01"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -92,12 +92,12 @@ def main_proc():
 #   データをExcelから読む   アプリでgoogle drive に保存できなくなったため
 def read_data_excel():
     global df
-    datafile = "daily.xlsx"
+    #datafile = "daily.xlsx"
     df = pd.read_excel(datafile,sheet_name ='歩数',usecols=[0, 1],
                        header = 0, names=["date", "step",])  # 0,1 カラムのみ読み込み
     df = df.dropna()
+    df['step'] = df['step'].astype(int)
     df['date'] = pd.to_datetime(df['date'])
-    print(df)
 
 def read_data():
     global datelist,steplist,lasthh
