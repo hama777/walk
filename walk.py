@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/03/02 v2.01 歩数カラムをintに修正
-version = "2.01"
+# 26/03/04 v2.02 データファイルを削除しないようにした
+version = "2.02"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +23,7 @@ templatefile = appdir + "./template.htm"
 resultfile = appdir + "./walk.htm"
 conffile = appdir + "\\walk.conf"
 logfile = appdir + "\\walk.log"
-data_bak_file = appdir + "./walkdata.txt"
+data_bak_file = appdir + "./daily.xlsx"
 
 #  統計情報  {キー  yymm  : 値   辞書   キー max min ave  maxdate mindate}
 statinfo = {}
@@ -83,16 +83,15 @@ def main_proc():
     create_year_on_year()
     parse_template()
     ftp_upload()
-    if debug == 0 :
-        shutil.copyfile(datafile, data_bak_file)
-        os.remove(datafile)
+    # if debug == 0 :
+    #     shutil.copyfile(datafile, data_bak_file)
+    #     os.remove(datafile)
     logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
     logf.close()
 
 #   データをExcelから読む   アプリでgoogle drive に保存できなくなったため
 def read_data_excel():
     global df
-    #datafile = "daily.xlsx"
     df = pd.read_excel(datafile,sheet_name ='歩数',usecols=[0, 1],
                        header = 0, names=["date", "step",])  # 0,1 カラムのみ読み込み
     df = df.dropna()
@@ -523,9 +522,7 @@ def date_settings():
     today_yy = today_date.year
     today_hh = today_datetime.hour     #  現在の 時
 
-
 def today(s):
-    #d = datetime.datetime.today().strftime("%m/%d %H:%M")
     d = today_datetime.strftime("%m/%d %H:%M")
     s = s.replace("%today%",d)
     out.write(s)
@@ -593,39 +590,12 @@ def parse_template() :
         if "%rank_week_all%" in line :
             rank_week_all()
             continue
-        # if "%rank_week2%" in line :
-        #     rank_week_all()
-        #     continue
         if "%rank_week_of_year%" in line :
             rank_week_of_year()
             continue
-        # if "%rank_week_of_year2%" in line :
-        #     rank_week_of_year(1)
-        #     continue
         if "%rank_week_of_half_year%" in line :
             rank_week_of_half_year()
             continue
-        # if "%rank_week_of_half_year2%" in line :
-        #     rank_week_of_half_year(1)
-        #     continue
-        # if "%rank_week1_low%" in line :
-        #     rank_week_all()
-        #     continue
-        # if "%rank_week2_low%" in line :
-        #     rank_week(3)
-        #     continue
-        # if "%rank_week_of_year1_low%" in line :
-        #     rank_week_of_year(2)
-        #     continue
-        # if "%rank_week_of_year2_low%" in line :
-        #     rank_week_of_year(3)
-        #     continue
-        # if "%rank_week_of_half_year1_low%" in line :
-        #     rank_week_of_half_year(2)
-        #     continue
-        # if "%rank_week_of_half_year2_low%" in line :
-        #     rank_week_of_half_year(3)
-        #     continue
         if "%month_ave_top%" in line :
             month_ave_top()
             continue
@@ -672,4 +642,3 @@ def parse_template() :
 
 # ----------------------------------------------------------
 main_proc()
-
