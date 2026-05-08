@@ -12,8 +12,8 @@ import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/03/04 v2.02 データファイルを削除しないようにした
-version = "2.02"
+# 26/05/08 v2.03 移動平均ランキングの歩数を右寄せにした
+version = "2.03"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -338,7 +338,7 @@ def rank_week_com(df_rank,flg,asc=False) :
         date_str = index.strftime('%y/%m/%d')
         if index.date() == lastdate :      # 最終データなら赤字にする
             date_str = f'<span class=red>{date_str}</span>'
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
+        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]:5.0f}</td><td>{date_str}</td></tr>')
 
 def post_pixela() :
     if debug == 1 :
