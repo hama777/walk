@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 26/01/19 v1.51 カラム処理変更   -->
+    <!-- 26/05/20 v2.04 最小ランキング追加   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -224,20 +224,20 @@
     </div>
 
     <br>
-    <h2>ランキング</h2>
+    <h2>ランキング(最高)</h2>
     <div class="flex">
         <div class='frame'>
             <span style="margin-left: 30px;">総合 (1～10位)</span>
             <table class="rank">
             <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-            %ranking_all
+            %ranking_all%
             </table>
         </div>
         <div class='frame'>
             <span style="margin-left: 30px;">総合 (11～20位)</span>
             <table class="rank">
             <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-            %ranking_all
+            %ranking_all%
             </table>
         </div>
         <div class='frame'>
@@ -262,6 +262,24 @@
             </table>
         </div>
     </div>
+    <h2>ランキング(最低)</h2>
+    <div class="flex">
+        <div class='frame'>
+            <span style="margin-left: 30px;">総合 (1～10位)</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_all_min%
+            </table>
+        </div>
+        <div class='frame'>
+            <span style="margin-left: 30px;">総合 (11～20位)</span>
+            <table class="rank">
+            <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+            %ranking_all_min%
+            </table>
+        </div>
+    </div>
+
     <br>
     <h2>月別ランキング</h2>
     今月の順位  
