@@ -8,12 +8,12 @@ import datetime
 import pandas as pd
 import requests
 import locale
-import shutil
+#import shutil
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/05/08 v2.03 移動平均ランキングの歩数を右寄せにした
-version = "2.03"
+# 26/05/20 v2.04 最小ランキング追加
+version = "2.04"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -53,6 +53,7 @@ yearinfo = {}    #  年ごとの平均
 year_info = {}    #  年ごとの情報  平均、中央値、最大、最小、SD
 month_table_col = 0 #  月別歩数統計  列制御
 ranking_all_col = 0 
+ranking_all_min_col = 0 
 ranking_year_col = 0
 rank_week_all_col = 0
 rank_week_year_col = 0
@@ -75,7 +76,6 @@ def main_proc():
         logf.close()
         return
     read_data_excel()
-    #read_data()
     create_dataframe()
     calc_move_ave()
     post_pixela()
@@ -83,9 +83,6 @@ def main_proc():
     create_year_on_year()
     parse_template()
     ftp_upload()
-    # if debug == 0 :
-    #     shutil.copyfile(datafile, data_bak_file)
-    #     os.remove(datafile)
     logf.write("\n=== end   %s === \n" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
     logf.close()
 
@@ -359,6 +356,14 @@ def post_pixela() :
             data['quantity'] = str(row.step)
         response = requests.post(url=pixela_url, json=data, headers=headers,verify=False)
 
+#   最小ランキング
+def rank_all_min() :
+    global ranking_all_min_col
+    sortstep = df.sort_values('step',ascending=True)
+    allrank = sortstep.head(20)
+    rank_common(allrank,ranking_all_min_col) 
+    ranking_all_min_col += 1
+
 def rank_common(rankdata,flg) :
     #  flg ..  0  1-10位を表示   1  11-20位を表示
     i =0 
@@ -375,7 +380,7 @@ def rank_common(rankdata,flg) :
         index_date_part = index.date()
         if index_date_part == lastdate :      # 最終データなら赤字にする
             date_str = f'<span class=red>{date_str}</span>'
-        out.write(f'<tr><td align="right">{i}</td><td>{row["step"]}</td><td>{date_str}</td></tr>')
+        out.write(f'<tr><td align="right">{i}</td><td align="right">{row["step"]}</td><td>{date_str}</td></tr>')
 
 #   月別グラフ    2022年から表示
 def month_graph() :
@@ -567,9 +572,12 @@ def parse_template() :
         if "%month_table" in line :
             month_table()
             continue
-        if "%ranking_all" in line :
+        if "%ranking_all%" in line :
             rank_common(allrank,ranking_all_col)
             ranking_all_col += 1
+            continue
+        if "%ranking_all_min%" in line :
+            rank_all_min()
             continue
         if "%ranking_month" in line :
             rank_common(monrank,0)
