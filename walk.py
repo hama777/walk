@@ -12,8 +12,8 @@ import locale
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/05/20 v2.04 最小ランキング追加
-version = "2.04"
+# 26/05/21 v2.05 年別、月別最小ランキング追加
+version = "2.05"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -53,8 +53,10 @@ yearinfo = {}    #  年ごとの平均
 year_info = {}    #  年ごとの情報  平均、中央値、最大、最小、SD
 month_table_col = 0 #  月別歩数統計  列制御
 ranking_all_col = 0 
-ranking_all_min_col = 0 
 ranking_year_col = 0
+ranking_all_min_col = 0 
+ranking_year_min_col = 0 
+
 rank_week_all_col = 0
 rank_week_year_col = 0
 rank_week_of_half_year_col = 0
@@ -364,6 +366,20 @@ def rank_all_min() :
     rank_common(allrank,ranking_all_min_col) 
     ranking_all_min_col += 1
 
+def rank_year_min() :
+    global ranking_year_min_col
+    last365 = df.tail(365)
+    sortstep = last365.sort_values('step',ascending=True)
+    rank = sortstep.head(20)
+    rank_common(rank,ranking_year_min_col) 
+    ranking_year_min_col += 1
+
+def rank_month_min() :
+    last30 = df.tail(30)
+    sortstep = last30.sort_values('step',ascending=True)
+    rank = sortstep.head(10)
+    rank_common(rank,0) 
+
 def rank_common(rankdata,flg) :
     #  flg ..  0  1-10位を表示   1  11-20位を表示
     i =0 
@@ -576,15 +592,21 @@ def parse_template() :
             rank_common(allrank,ranking_all_col)
             ranking_all_col += 1
             continue
-        if "%ranking_all_min%" in line :
-            rank_all_min()
-            continue
-        if "%ranking_month" in line :
+        if "%ranking_month%" in line :
             rank_common(monrank,0)
             continue
         if "%ranking_year%" in line :
             rank_common(yearrank,ranking_year_col)
             ranking_year_col += 1
+            continue
+        if "%ranking_all_min%" in line :
+            rank_all_min()
+            continue
+        if "%ranking_year_min%" in line :
+            rank_year_min()
+            continue
+        if "%ranking_month_min%" in line :
+            rank_month_min()
             continue
         if "%year_graph" in line :
             year_graph()
