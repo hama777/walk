@@ -1,5 +1,5 @@
 <html><head><title>Walk List</title>
-    <!-- 26/05/21 v2.05 年別、月別最小ランキング追加   -->
+    <!-- 26/05/28 v2.06 移動平均ランキング変更   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="Content-Style-Type" content="text/css">
     <link rel="stylesheet" href="walk.css">
@@ -342,25 +342,6 @@
     <div id="daily_hist" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
     <h2>7日移動平均</h2>
     <div id="daily_movav" style="width:800px; height:400px;  margin-top:20px ; margin-left:  50px; " ></div>
-
-    <h2>年別・四半期グラフ</h2>
-    <table>
-        <tr><th>年</th><th>平均</th><th>中央</th><th>標準偏差</th><th>最大</th><th>最小</th></tr>
-        %year_info_table
-    </table>
-    <div class="flex">
-        <div class='frame'>
-            <div id="year_graph" style="width:400px; height:300px; margin-top:20px ;  margin-bottom:20px ; margin-left:  30px; margin-right:  30px;  " >
-            </div>
-        </div>
-        <div class='frame'>
-            <div id="quar_graph" style="width:600px; height:300px; margin-top:20px ;  margin-bottom:20px ; margin-left:  30px; margin-right:  30px;  " >
-            </div>
-        </div>
-    </div>
-    <h2>状況</h2>
-    <iframe src="https://pixe.la/v1/users/hama777/graphs/walk?mode=simple" height="155" width="720" frameborder="0">
-    </iframe>
     <h2>移動平均ランキング(最高)</h2>
     <div class="flex">
         <div class='frame'>
@@ -372,6 +353,13 @@
         </div>
         <div class='frame'>
             <span style="margin-left: 30px;">総合(2)</span>
+            <table class="rank">
+                <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+                %rank_week_all%
+            </table>
+        </div>
+        <div class='frame'>
+            <span style="margin-left: 30px;">総合(3)</span>
             <table class="rank">
                 <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
                 %rank_week_all%
@@ -392,17 +380,10 @@
             </table>
         </div>
         <div class='frame'>
-            <span style="margin-left: 30px;">180日(1)</span>
+            <span style="margin-left: 30px;">365日(3)</span>
             <table class="rank">
                 <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-                %rank_week_of_half_year%
-            </table>
-        </div>
-        <div class='frame'>
-            <span style="margin-left: 30px;">180日(2)</span>
-            <table class="rank">
-                <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-                %rank_week_of_half_year%
+                %rank_week_of_year%
             </table>
         </div>
     </div>
@@ -423,6 +404,13 @@
             </table>
         </div>
         <div class='frame'>
+            <span style="margin-left: 30px;">総合(3)</span>
+            <table class="rank">
+                <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
+                %rank_week_all%
+            </table>
+        </div>
+        <div class='frame'>
             <span style="margin-left: 30px;">365日(1)</span>
             <table class="rank">
                 <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
@@ -437,20 +425,34 @@
             </table>
         </div>
         <div class='frame'>
-            <span style="margin-left: 30px;">180日(1)</span>
+            <span style="margin-left: 30px;">365日(3)</span>
             <table class="rank">
                 <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-                %rank_week_of_half_year%
-            </table>
-        </div>
-        <div class='frame'>
-            <span style="margin-left: 30px;">180日(2)</span>
-            <table class="rank">
-                <tr><th>順位</th><th>歩数</th><th>日付</th></tr>
-                %rank_week_of_half_year%
+                %rank_week_of_year%
             </table>
         </div>
     </div>
+
+
+
+    <h2>年別・四半期グラフ</h2>
+    <table>
+        <tr><th>年</th><th>平均</th><th>中央</th><th>標準偏差</th><th>最大</th><th>最小</th></tr>
+        %year_info_table
+    </table>
+    <div class="flex">
+        <div class='frame'>
+            <div id="year_graph" style="width:400px; height:300px; margin-top:20px ;  margin-bottom:20px ; margin-left:  30px; margin-right:  30px;  " >
+            </div>
+        </div>
+        <div class='frame'>
+            <div id="quar_graph" style="width:600px; height:300px; margin-top:20px ;  margin-bottom:20px ; margin-left:  30px; margin-right:  30px;  " >
+            </div>
+        </div>
+    </div>
+    <h2>状況</h2>
+    <iframe src="https://pixe.la/v1/users/hama777/graphs/walk?mode=simple" height="155" width="720" frameborder="0">
+    </iframe>
     <h2>同月比較統計</h2>
     今月
     <div class="flex">
