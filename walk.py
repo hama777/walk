@@ -12,8 +12,8 @@ import locale
 from ftplib import FTP_TLS
 from datetime import date,timedelta
 
-# 26/05/21 v2.05 年別、月別最小ランキング追加
-version = "2.05"
+# 26/05/28 v2.06 移動平均ランキング変更
+version = "2.06"
 
 debug = 0     #  1 ... debug
 appdir = os.path.dirname(os.path.abspath(__file__))
@@ -294,20 +294,20 @@ def rank_week_all() :
     global rank_week_all_col
 
     df_rank_week = df.copy()
-    if rank_week_all_col <= 1 :
+    if rank_week_all_col <= 2 :
         rank_week_com(df_rank_week,rank_week_all_col)
-    else :   # flg = 3 or 4
-        rank_week_com(df_rank_week,rank_week_all_col-2,True)
+    else :   
+        rank_week_com(df_rank_week,rank_week_all_col-3,True)
     rank_week_all_col += 1
 
 #   週間移動平均ランキング   365日
 def rank_week_of_year() :
     global rank_week_year_col
     df_rank_week = df.tail(365).copy()
-    if rank_week_year_col <= 1 :
+    if rank_week_year_col <= 2 :
         rank_week_com(df_rank_week,rank_week_year_col)
     else :
-        rank_week_com(df_rank_week,rank_week_year_col-2,True)
+        rank_week_com(df_rank_week,rank_week_year_col-3,True)
     rank_week_year_col += 1 
 
 #   週間移動平均ランキング   180日
@@ -320,18 +320,25 @@ def rank_week_of_half_year() :
         rank_week_com(df_rank_week,rank_week_of_half_year_col-2,True)
     rank_week_of_half_year_col += 1
 
+#   移動平均ランキング 共通処理   
 def rank_week_com(df_rank,flg,asc=False) :
+    #  flg 0 .. 1 - 10 位  1 .. 11 - 20位  2 .. 21 - 30位
     mov_ave_dd = 7 
     df_rank['step'] = df_rank['step'].rolling(mov_ave_dd).mean()
     df_rank = df_rank.sort_values('step',ascending=asc)
     i = 0
-    for index , row in df_rank.head(20).iterrows() :
+    for index , row in df_rank.head(30).iterrows() :
         i += 1
         if flg == 0 :
             if i >= 11 :
                 break 
         if flg == 1 :
+            if i >= 21 :
+                break 
             if i <= 10 :
+                continue 
+        if flg == 2 :
+            if i <= 20 :
                 continue 
 
         date_str = index.strftime('%y/%m/%d')
